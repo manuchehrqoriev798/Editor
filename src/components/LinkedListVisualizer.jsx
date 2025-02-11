@@ -63,19 +63,30 @@ export default function LinkedListVisualizer() {
 
     const removeNode = (listIndex, nodeIndex) => {
         const newLists = [...lists];
-        newLists[listIndex] = newLists[listIndex].filter((_, i) => i !== nodeIndex);
         
-        // Remove empty lists
+        // Clear the ref for the node being removed
+        delete nodeRefs.current[`${listIndex}-${nodeIndex}`];
+        
+        // Remove the node
+        newLists[listIndex].splice(nodeIndex, 1);
+        
         if (newLists[listIndex].length === 0) {
             newLists.splice(listIndex, 1);
         } else {
-            // Update next pointers
+            // Update next pointers and shift refs
             newLists[listIndex].forEach((node, i) => {
                 node.next = i < newLists[listIndex].length - 1 ? i + 1 : null;
+                // Shift the refs for nodes after the removed node
+                if (i >= nodeIndex) {
+                    nodeRefs.current[`${listIndex}-${i}`] = nodeRefs.current[`${listIndex}-${i + 1}`];
+                }
             });
+            
+            // Clean up the last ref since we shifted everything down
+            delete nodeRefs.current[`${listIndex}-${newLists[listIndex].length}`];
         }
         
-        setLists(newLists);
+        setLists([...newLists]);
     };
 
     // Window dragging handlers
@@ -167,62 +178,41 @@ export default function LinkedListVisualizer() {
 
     const NodeConnector = ({ startNode, endNode, listKey }) => {
         const [dimensions, setDimensions] = useState({ width: 0, angle: 0, left: 0, top: 0 });
-        const [forceUpdate, setForceUpdate] = useState(0);
 
         useEffect(() => {
             const updateDimensions = () => {
                 if (!startNode || !endNode) return;
 
-                requestAnimationFrame(() => {
-                    const start = startNode.getBoundingClientRect();
-                    const end = endNode.getBoundingClientRect();
-                    
-                    const dx = end.left - start.right;
-                    const dy = end.top - start.top;
-                    
-                    const length = Math.sqrt(dx * dx + dy * dy);
-                    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-                    
-                    setDimensions({
-                        width: length,
-                        angle: angle,
-                        left: start.right - start.left,
-                        top: start.height / 2
-                    });
+                const start = startNode.getBoundingClientRect();
+                const end = endNode.getBoundingClientRect();
+                
+                const dx = end.left - start.right;
+                const dy = end.top - start.top;
+                
+                const length = Math.sqrt(dx * dx + dy * dy);
+                const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                
+                setDimensions({
+                    width: length,
+                    angle: angle,
+                    left: start.right - start.left,
+                    top: start.height / 2
                 });
             };
 
-            // Initial updates
             updateDimensions();
-            const timer1 = setTimeout(updateDimensions, 0);
-            const timer2 = setTimeout(updateDimensions, 100);
 
-            const resizeObserver = new ResizeObserver(() => {
-                updateDimensions();
-                // Force another update after a short delay
-                setTimeout(updateDimensions, 50);
-            });
-
+            const resizeObserver = new ResizeObserver(updateDimensions);
             if (startNode) resizeObserver.observe(startNode);
             if (endNode) resizeObserver.observe(endNode);
-
-            // Force periodic updates for a short time after mounting
-            const interval = setInterval(() => {
-                setForceUpdate(prev => prev + 1);
-            }, 100);
-
-            setTimeout(() => clearInterval(interval), 500);
 
             window.addEventListener('resize', updateDimensions);
 
             return () => {
-                clearTimeout(timer1);
-                clearTimeout(timer2);
                 resizeObserver.disconnect();
                 window.removeEventListener('resize', updateDimensions);
-                clearInterval(interval);
             };
-        }, [startNode, endNode, listKey, forceUpdate]);
+        }, [startNode, endNode, listKey]);
 
         if (!startNode || !endNode) return null;
 
