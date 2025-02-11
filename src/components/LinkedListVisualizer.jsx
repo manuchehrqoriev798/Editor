@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './linkedlistvisualizer.css'
 import React from 'react'
 
@@ -12,6 +12,7 @@ export default function LinkedListVisualizer() {
     const [inputValue, setInputValue] = useState('');
     const [showDirections, setShowDirections] = useState({ listIndex: null, nodeIndex: null });
     const nodeRefs = React.useRef({});
+    const containerRef = useRef(null);
 
     const generateColor = (index) => {
         const goldenRatio = 0.618033988749895;
@@ -55,10 +56,10 @@ export default function LinkedListVisualizer() {
         setLists(newLists);
         setShowDirections({ listIndex: null, nodeIndex: null });
         
-        // Force a rerender after a short delay
-        setTimeout(() => {
+        // Force immediate rerender using requestAnimationFrame
+        requestAnimationFrame(() => {
             setLists([...newLists]);
-        }, 50);
+        });
     };
 
     const removeNode = (listIndex, nodeIndex) => {
@@ -153,6 +154,21 @@ export default function LinkedListVisualizer() {
 
     const handleNodeDragEnd = (e) => {
         e.target.classList.remove('dragging');
+        
+        // Check if the drop position is outside the container
+        const containerRect = containerRef.current.getBoundingClientRect();
+        const { clientX, clientY } = e;
+        
+        const isOutsideContainer = 
+            clientX < containerRect.left ||
+            clientX > containerRect.right ||
+            clientY < containerRect.top ||
+            clientY > containerRect.bottom;
+            
+        if (isOutsideContainer && draggedInfo) {
+            removeNode(draggedInfo.listIndex, draggedInfo.nodeIndex);
+        }
+        
         setDraggedInfo(null);
     };
 
@@ -176,8 +192,104 @@ export default function LinkedListVisualizer() {
         }
     }, [isDragging, dragStart]);
 
-    const NodeConnector = ({ startNode, endNode, listKey }) => {
+    const NodeConnector = ({ startNode, endNode, listKey, listIndex, nodeIndex, lists, setLists }) => {
         const [dimensions, setDimensions] = useState({ width: 0, angle: 0, left: 0, top: 0 });
+        const [isDragging, setIsDragging] = useState(false);
+        const [dragPosition, setDragPosition] = useState(null);
+        const connectorRef = useRef(null);
+
+        const handleConnectorMouseDown = (e) => {
+            if (!e.target.classList.contains('node-connector')) return;
+            
+            e.stopPropagation();
+            e.preventDefault();
+            
+            // Get initial cursor position
+            const startX = e.clientX;
+            const startY = e.clientY;
+            
+            setIsDragging(true);
+            setDragPosition({ x: startX, y: startY });
+            
+            // Create a ghost element immediately at cursor position
+            const ghost = document.createElement('div');
+            ghost.className = 'node-connector dragging-ghost';
+            ghost.style.position = 'fixed';
+            ghost.style.left = `${startX}px`;
+            ghost.style.top = `${startY}px`;
+            ghost.style.width = '40px';
+            ghost.style.transform = 'translate(-50%, -50%)';
+            ghost.style.pointerEvents = 'none';
+            ghost.style.zIndex = '1001';
+            
+            const arrowHead = document.createElement('div');
+            arrowHead.className = 'arrow-head';
+            ghost.appendChild(arrowHead);
+            document.body.appendChild(ghost);
+
+            const handleMouseMove = (e) => {
+                const x = e.clientX;
+                const y = e.clientY;
+                
+                ghost.style.left = `${x}px`;
+                ghost.style.top = `${y}px`;
+                
+                const container = document.querySelector('.linkedlist-container');
+                const containerRect = container.getBoundingClientRect();
+                const isOutside = 
+                    x < containerRect.left ||
+                    x > containerRect.right ||
+                    y < containerRect.top ||
+                    y > containerRect.bottom;
+                
+                ghost.style.backgroundColor = isOutside ? '#ff4444' : '#666';
+                arrowHead.style.borderLeftColor = isOutside ? '#ff4444' : '#666';
+                
+                setDragPosition({ x, y });
+            };
+
+            const handleMouseUp = (e) => {
+                setIsDragging(false);
+                setDragPosition(null);
+                document.body.removeChild(ghost);
+                
+                const container = document.querySelector('.linkedlist-container');
+                const containerRect = container.getBoundingClientRect();
+                const isOutside = 
+                    e.clientX < containerRect.left ||
+                    e.clientX > containerRect.right ||
+                    e.clientY < containerRect.top ||
+                    e.clientY > containerRect.bottom;
+
+                if (isOutside) {
+                    const newLists = [...lists];
+                    const currentList = [...newLists[listIndex]];
+                    
+                    const disconnectedNodes = currentList.splice(nodeIndex + 1);
+                    currentList[nodeIndex].next = null;
+                    
+                    disconnectedNodes.forEach((node, i) => {
+                        node.next = i < disconnectedNodes.length - 1 ? i + 1 : null;
+                    });
+                    
+                    newLists[listIndex] = currentList;
+                    newLists.push(disconnectedNodes);
+                    
+                    setLists(newLists);
+                    
+                    // Use a very short timeout to ensure DOM updates
+                    requestAnimationFrame(() => {
+                        setLists([...newLists]);
+                    });
+                }
+                
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+            };
+
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+        };
 
         useEffect(() => {
             const updateDimensions = () => {
@@ -186,7 +298,7 @@ export default function LinkedListVisualizer() {
                 const start = startNode.getBoundingClientRect();
                 const end = endNode.getBoundingClientRect();
                 
-                const dx = end.left - start.right;
+                const dx = end.left - start.right + 10;
                 const dy = end.top - start.top;
                 
                 const length = Math.sqrt(dx * dx + dy * dy);
@@ -195,7 +307,7 @@ export default function LinkedListVisualizer() {
                 setDimensions({
                     width: length,
                     angle: angle,
-                    left: start.right - start.left,
+                    left: start.right - start.left - 10,
                     top: start.height / 2
                 });
             };
@@ -218,14 +330,20 @@ export default function LinkedListVisualizer() {
 
         return (
             <div 
-                className="node-connector"
+                ref={connectorRef}
+                className={`node-connector ${isDragging ? 'dragging' : ''}`}
                 style={{
                     width: `${dimensions.width}px`,
                     transform: `rotate(${dimensions.angle}deg)`,
                     left: dimensions.left + 'px',
-                    top: dimensions.top + 'px'
+                    top: dimensions.top + 'px',
+                    cursor: isDragging ? 'grabbing' : 'grab',
+                    opacity: isDragging ? 0.3 : 1
                 }}
-            />
+                onMouseDown={handleConnectorMouseDown}
+            >
+                <div className="arrow-head" />
+            </div>
         );
     };
 
@@ -240,7 +358,7 @@ export default function LinkedListVisualizer() {
                 }}
                 onMouseDown={handleMouseDown}
             >
-                <div className='linkedlist-container'>
+                <div className='linkedlist-container' ref={containerRef}>
                     {lists.map((list, listIndex) => (
                         <div key={listIndex} className='list-wrapper'>
                             <div className='nodes-container'>
@@ -313,6 +431,10 @@ export default function LinkedListVisualizer() {
                                                     startNode={nodeRefs.current[`${listIndex}-${nodeIndex}`]}
                                                     endNode={nodeRefs.current[`${listIndex}-${node.next}`]}
                                                     listKey={`${listIndex}-${list.length}`}
+                                                    listIndex={listIndex}
+                                                    nodeIndex={nodeIndex}
+                                                    lists={lists}
+                                                    setLists={setLists}
                                                 />
                                             )}
                                         </div>
