@@ -36,7 +36,6 @@
 }
 
 .add-node-btn {
-  position: absolute;
   width: 20px;
   height: 20px;
   background-color: #2196F3;
@@ -50,6 +49,8 @@
   font-size: 16px;
   line-height: 1;
   padding: 0;
+  z-index: 3;
+  transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
 .add-node-btn.left {
@@ -74,6 +75,7 @@
 
 .add-node-btn:hover {
   background-color: #1976D2;
+  transform: scale(1.1);
 }
 
 .graph-area {
@@ -107,7 +109,12 @@
   cursor: move;
   user-select: none;
   z-index: 2;
-  transition: none; /* Remove any existing transition to make dragging smooth */
+  transition: border-color 0.2s ease;
+}
+
+.node-hovered {
+  border-color: #2196F3;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.3);
 }
 
 .connection-line {

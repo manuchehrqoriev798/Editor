@@ -13,6 +13,10 @@ const GraphVisualizer = () => {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [isDraggingNode, setIsDraggingNode] = useState(false);
   const [draggedNode, setDraggedNode] = useState(null);
+  const [addButtonPosition, setAddButtonPosition] = useState(null);
+  const [cursorAngle, setCursorAngle] = useState(0);
+  const NODE_RADIUS = 20; // Half of node width
+  const INTERACTION_RADIUS = 40; // Distance from node edge where interaction is allowed
 
   const handleCreateGraph = () => {
     setIsGraphCreated(true);
@@ -68,17 +72,48 @@ const GraphVisualizer = () => {
     setDraggedNode(nodeId);
   };
 
-  const handleNodeMouseMove = (e) => {
-    if (!isDraggingNode || !draggedNode) return;
-    
-    e.stopPropagation();
-    const rect = graphAreaRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left - offset.x) / scale;
-    const y = (e.clientY - rect.top - offset.y) / scale;
+  const handleNodeMouseMove = (e, nodeId) => {
+    if (isDraggingNode) {
+      if (!draggedNode || !isDraggingNode) return;
+      e.stopPropagation();
+      const rect = graphAreaRef.current.getBoundingClientRect();
+      const x = (e.clientX - rect.left - offset.x) / scale;
+      const y = (e.clientY - rect.top - offset.y) / scale;
 
-    setNodes(nodes.map(node => 
-      node.id === draggedNode ? { ...node, position: { x, y } } : node
-    ));
+      setNodes(nodes.map(node => 
+        node.id === draggedNode ? { ...node, position: { x, y } } : node
+      ));
+    } else {
+      const node = nodes.find(n => n.id === nodeId);
+      if (!node) return;
+
+      const rect = graphAreaRef.current.getBoundingClientRect();
+      const cursorX = (e.clientX - rect.left - offset.x) / scale;
+      const cursorY = (e.clientY - rect.top - offset.y) / scale;
+
+      const nodeCenter = {
+        x: node.position.x + NODE_RADIUS,
+        y: node.position.y + NODE_RADIUS
+      };
+
+      // Calculate distance from cursor to node center
+      const dx = cursorX - nodeCenter.x;
+      const dy = cursorY - nodeCenter.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      // Only show add button if cursor is between node edge and interaction radius
+      if (distance > NODE_RADIUS && distance <= NODE_RADIUS + INTERACTION_RADIUS) {
+        const angle = Math.atan2(dy, dx);
+        setCursorAngle(angle);
+        setAddButtonPosition({
+          x: cursorX - 10,
+          y: cursorY - 10
+        });
+        setHoveredNode(nodeId);
+      } else {
+        setAddButtonPosition(null);
+      }
+    }
   };
 
   const handleNodeMouseUp = (e) => {
@@ -110,56 +145,50 @@ const GraphVisualizer = () => {
     setIsDraggingCanvas(false);
   };
 
-  const addNodeInDirection = (sourceNode, direction) => {
-    const spacing = 100;
-    const alignmentThreshold = 20;
-    let newPosition = { x: sourceNode.position.x, y: sourceNode.position.y };
+  const addNodeAtAngle = (sourceNode, angle) => {
+    const spacing = 100; // Distance from source node
     
+    // Calculate new position using trigonometry
+    const newPosition = {
+      x: sourceNode.position.x + spacing * Math.cos(angle),
+      y: sourceNode.position.y + spacing * Math.sin(angle)
+    };
+
     // Helper function to check if position is occupied
     const isPositionOccupied = (x, y) => {
-      const occupiedThreshold = 20;
+      const occupiedThreshold = 40;
       return nodes.some(node => 
         Math.abs(node.position.x - x) < occupiedThreshold && 
         Math.abs(node.position.y - y) < occupiedThreshold
       );
     };
 
-    // Find the next available position in the given direction
-    const findNextAvailablePosition = (startX, startY, direction) => {
-      let x = startX;
-      let y = startY;
-      let attempts = 0;
-      const maxAttempts = 10;
-
-      while (isPositionOccupied(x, y) && attempts < maxAttempts) {
-        switch (direction) {
-          case 'right': x += spacing; break;
-          case 'left': x -= spacing; break;
-          case 'bottom': y += spacing; break;
-          case 'top': y -= spacing; break;
+    // Adjust position if occupied
+    if (isPositionOccupied(newPosition.x, newPosition.y)) {
+      // Try increasing the distance until we find an empty spot
+      let currentSpacing = spacing;
+      const maxAttempts = 5;
+      
+      for (let i = 0; i < maxAttempts; i++) {
+        currentSpacing += 40;
+        const adjustedPosition = {
+          x: sourceNode.position.x + currentSpacing * Math.cos(angle),
+          y: sourceNode.position.y + currentSpacing * Math.sin(angle)
+        };
+        
+        if (!isPositionOccupied(adjustedPosition.x, adjustedPosition.y)) {
+          newPosition.x = adjustedPosition.x;
+          newPosition.y = adjustedPosition.y;
+          break;
         }
-        attempts++;
       }
-      return { x, y };
-    };
-
-    // Calculate the initial position for the new node
-    switch (direction) {
-      case 'left': newPosition.x -= spacing; break;
-      case 'right': newPosition.x += spacing; break;
-      case 'top': newPosition.y -= spacing; break;
-      case 'bottom': newPosition.y += spacing; break;
     }
-
-    // Find the next available position if the initial position is occupied
-    newPosition = findNextAvailablePosition(newPosition.x, newPosition.y, direction);
 
     const newNode = {
       id: `node-${nodes.length + 1}`,
       position: newPosition,
     };
     
-    // Create a direct connection between source node and new node
     const newConnection = {
       from: sourceNode.id,
       to: newNode.id,
@@ -218,7 +247,7 @@ const GraphVisualizer = () => {
             onMouseDown={handleCanvasDragStart}
             onMouseMove={(e) => {
               if (isDraggingNode) {
-                handleNodeMouseMove(e);
+                handleNodeMouseMove(e, draggedNode);
               } else {
                 handleCanvasDrag(e);
               }
@@ -271,11 +300,14 @@ const GraphVisualizer = () => {
                 <div
                   key={node.id}
                   className="node-wrapper"
-                  onMouseEnter={() => setHoveredNode(node.id)}
-                  onMouseLeave={() => setHoveredNode(null)}
+                  onMouseMove={(e) => handleNodeMouseMove(e, node.id)}
+                  onMouseLeave={() => {
+                    setAddButtonPosition(null);
+                    setHoveredNode(null);
+                  }}
                 >
                   <div
-                    className="node"
+                    className={`node ${hoveredNode === node.id ? 'node-hovered' : ''}`}
                     onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
                     style={{
                       left: `${node.position.x}px`,
@@ -285,48 +317,21 @@ const GraphVisualizer = () => {
                   >
                     {index + 1}
                   </div>
-                  {hoveredNode === node.id && (
-                    <div className="add-buttons-container" style={{
-                      left: `${node.position.x - 30}px`,
-                      top: `${node.position.y - 30}px`,
-                    }}>
-                      <button 
-                        className="add-node-btn left"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          addNodeInDirection(node, 'left');
-                        }}
-                      >
-                        +
-                      </button>
-                      <button 
-                        className="add-node-btn right"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          addNodeInDirection(node, 'right');
-                        }}
-                      >
-                        +
-                      </button>
-                      <button 
-                        className="add-node-btn top"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          addNodeInDirection(node, 'top');
-                        }}
-                      >
-                        +
-                      </button>
-                      <button 
-                        className="add-node-btn bottom"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          addNodeInDirection(node, 'bottom');
-                        }}
-                      >
-                        +
-                      </button>
-                    </div>
+                  {hoveredNode === node.id && addButtonPosition && (
+                    <button 
+                      className="add-node-btn"
+                      style={{
+                        left: `${addButtonPosition.x}px`,
+                        top: `${addButtonPosition.y}px`,
+                        position: 'absolute'
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        addNodeAtAngle(node, cursorAngle);
+                      }}
+                    >
+                      +
+                    </button>
                   )}
                 </div>
               ))}
