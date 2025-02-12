@@ -56,6 +56,7 @@ const GraphVisualizer = () => {
 
   const addNodeInDirection = (sourceNode, direction) => {
     const spacing = 100;
+    const alignmentThreshold = 20; // Tolerance for considering nodes "aligned"
     let newPosition = { x: sourceNode.position.x, y: sourceNode.position.y };
     
     // First, shift existing nodes that would be in the way
@@ -64,7 +65,9 @@ const GraphVisualizer = () => {
       
       switch (direction) {
         case 'right':
-          if (node.position.x >= sourceNode.position.x + spacing) {
+          // Only shift nodes that are roughly at the same y-position
+          if (Math.abs(node.position.y - sourceNode.position.y) <= alignmentThreshold &&
+              node.position.x >= sourceNode.position.x + spacing) {
             shiftedNode.position = {
               ...node.position,
               x: node.position.x + spacing
@@ -72,7 +75,8 @@ const GraphVisualizer = () => {
           }
           break;
         case 'left':
-          if (node.position.x <= sourceNode.position.x - spacing) {
+          if (Math.abs(node.position.y - sourceNode.position.y) <= alignmentThreshold &&
+              node.position.x <= sourceNode.position.x - spacing) {
             shiftedNode.position = {
               ...node.position,
               x: node.position.x - spacing
@@ -80,7 +84,9 @@ const GraphVisualizer = () => {
           }
           break;
         case 'bottom':
-          if (node.position.y >= sourceNode.position.y + spacing) {
+          // Only shift nodes that are roughly at the same x-position
+          if (Math.abs(node.position.x - sourceNode.position.x) <= alignmentThreshold &&
+              node.position.y >= sourceNode.position.y + spacing) {
             shiftedNode.position = {
               ...node.position,
               y: node.position.y + spacing
@@ -88,7 +94,8 @@ const GraphVisualizer = () => {
           }
           break;
         case 'top':
-          if (node.position.y <= sourceNode.position.y - spacing) {
+          if (Math.abs(node.position.x - sourceNode.position.x) <= alignmentThreshold &&
+              node.position.y <= sourceNode.position.y - spacing) {
             shiftedNode.position = {
               ...node.position,
               y: node.position.y - spacing
