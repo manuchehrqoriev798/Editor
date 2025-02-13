@@ -148,37 +148,39 @@ const GraphVisualizer = () => {
   const addNodeAtAngle = (sourceNode, angle) => {
     const spacing = 100; // Distance from source node
     
-    // Calculate new position using trigonometry
-    const newPosition = {
+    // Calculate initial position using trigonometry
+    const initialPosition = {
       x: sourceNode.position.x + spacing * Math.cos(angle),
       y: sourceNode.position.y + spacing * Math.sin(angle)
     };
 
     // Helper function to check if position is occupied
     const isPositionOccupied = (x, y) => {
-      const occupiedThreshold = 40;
+      const occupiedThreshold = 50; // Increased threshold for better spacing
       return nodes.some(node => 
-        Math.abs(node.position.x - x) < occupiedThreshold && 
-        Math.abs(node.position.y - y) < occupiedThreshold
+        Math.sqrt(
+          Math.pow(node.position.x - x, 2) + 
+          Math.pow(node.position.y - y, 2)
+        ) < occupiedThreshold
       );
     };
 
-    // Adjust position if occupied
-    if (isPositionOccupied(newPosition.x, newPosition.y)) {
-      // Try increasing the distance until we find an empty spot
+    let newPosition = initialPosition;
+    
+    // If initial position is occupied, try finding a free spot
+    if (isPositionOccupied(initialPosition.x, initialPosition.y)) {
       let currentSpacing = spacing;
-      const maxAttempts = 5;
+      const maxAttempts = 20;
       
       for (let i = 0; i < maxAttempts; i++) {
-        currentSpacing += 40;
+        currentSpacing += 60;
         const adjustedPosition = {
           x: sourceNode.position.x + currentSpacing * Math.cos(angle),
           y: sourceNode.position.y + currentSpacing * Math.sin(angle)
         };
         
         if (!isPositionOccupied(adjustedPosition.x, adjustedPosition.y)) {
-          newPosition.x = adjustedPosition.x;
-          newPosition.y = adjustedPosition.y;
+          newPosition = adjustedPosition;
           break;
         }
       }
