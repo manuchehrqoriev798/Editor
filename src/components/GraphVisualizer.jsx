@@ -22,12 +22,13 @@ const GraphVisualizer = () => {
     setIsGraphCreated(true);
     // Wait for the graph area to be rendered
     setTimeout(() => {
-      // Add initial node in the center of the graph area
+      // Add initial empty node in the center of the graph area
       const initialNode = {
-        id: 'node-1',
+        id: `node-${Date.now()}`, // Use timestamp for unique IDs
+        label: '', // Empty label by default
         position: {
-          x: graphAreaRef.current.clientWidth / 2 - 20, // 20 is half of node width
-          y: graphAreaRef.current.clientHeight / 2 - 20, // 20 is half of node height
+          x: graphAreaRef.current.clientWidth / 2 - 20,
+          y: graphAreaRef.current.clientHeight / 2 - 20,
         },
       };
       setNodes([initialNode]);
@@ -37,6 +38,7 @@ const GraphVisualizer = () => {
   const handleAddNode = () => {
     const newNode = {
       id: `node-${nodes.length + 1}`,
+      label: nodes.length + 1,
       position: {
         x: Math.random() * (graphAreaRef.current.clientWidth - 100),
         y: Math.random() * (graphAreaRef.current.clientHeight - 100),
@@ -146,9 +148,8 @@ const GraphVisualizer = () => {
   };
 
   const addNodeAtAngle = (sourceNode, angle) => {
-    const spacing = 100; // Distance from source node
+    const spacing = 100;
     
-    // Calculate initial position using trigonometry
     const initialPosition = {
       x: sourceNode.position.x + spacing * Math.cos(angle),
       y: sourceNode.position.y + spacing * Math.sin(angle)
@@ -187,7 +188,8 @@ const GraphVisualizer = () => {
     }
 
     const newNode = {
-      id: `node-${nodes.length + 1}`,
+      id: `node-${Date.now()}`, // Use timestamp for unique IDs
+      label: '', // Empty label by default
       position: newPosition,
     };
     
@@ -231,6 +233,45 @@ const GraphVisualizer = () => {
 
   const handleGraphAreaClick = () => {
     setHoveredNode(null);
+  };
+
+  const handleDeleteNode = (nodeId) => {
+    // Find all connections involving this node
+    const nodeConnections = connections.filter(
+      conn => conn.from === nodeId || conn.to === nodeId
+    );
+
+    // Create new connections between nodes that were connected through the deleted node
+    const newConnections = [];
+    const incomingConnections = nodeConnections.filter(conn => conn.to === nodeId);
+    const outgoingConnections = nodeConnections.filter(conn => conn.from === nodeId);
+
+    // Connect incoming nodes to outgoing nodes
+    incomingConnections.forEach(inConn => {
+      outgoingConnections.forEach(outConn => {
+        newConnections.push({
+          from: inConn.from,
+          to: outConn.to
+        });
+      });
+    });
+
+    // Filter out connections involving the deleted node and add new connections
+    setConnections([
+      ...connections.filter(conn => conn.from !== nodeId && conn.to !== nodeId),
+      ...newConnections
+    ]);
+
+    // Remove the node without changing other nodes' labels
+    setNodes(nodes.filter(node => node.id !== nodeId));
+    setHoveredNode(null);
+  };
+
+  // Add this new handler for label changes
+  const handleLabelChange = (nodeId, newValue) => {
+    setNodes(nodes.map(node =>
+      node.id === nodeId ? { ...node, label: newValue } : node
+    ));
   };
 
   return (
@@ -298,7 +339,7 @@ const GraphVisualizer = () => {
                   </div>
                 );
               })}
-              {nodes.map((node, index) => (
+              {nodes.map((node) => (
                 <div
                   key={node.id}
                   className="node-wrapper"
@@ -321,7 +362,25 @@ const GraphVisualizer = () => {
                       cursor: isDraggingNode && draggedNode === node.id ? 'grabbing' : 'default'
                     }}
                   >
-                    {index + 1}
+                    <input
+                      type="text"
+                      value={node.label}
+                      onChange={(e) => handleLabelChange(node.id, e.target.value)}
+                      className="node-input"
+                      onClick={(e) => e.stopPropagation()}
+                      placeholder="?"
+                    />
+                    {hoveredNode === node.id && (
+                      <button 
+                        className="delete-node-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteNode(node.id);
+                        }}
+                      >
+                        ×
+                      </button>
+                    )}
                   </div>
                   {hoveredNode === node.id && addButtonPosition && (
                     <button 

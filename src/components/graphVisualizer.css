@@ -108,8 +108,10 @@
   align-items: center;
   cursor: move;
   user-select: none;
-  z-index: 2;
+  z-index: 1;
   transition: border-color 0.2s ease;
+  padding: 0;
+  overflow: visible;
 }
 
 .node-hovered {
@@ -146,4 +148,45 @@
   height: 8px;
   background-color: #333;
   clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+
+.delete-node-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 20px;
+  height: 20px;
+  background-color: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+  z-index: 2;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.delete-node-btn:hover {
+  background-color: #cc0000;
+  transform: scale(1.1);
+}
+
+.node-input {
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-size: 14px;
+  outline: none;
+  padding: 0;
+}
+
+.node-input::placeholder {
+  color: #999;
 }
