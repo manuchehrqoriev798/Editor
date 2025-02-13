@@ -267,7 +267,7 @@ const GraphVisualizer = () => {
               }
             }}
             style={{
-              cursor: isDraggingCanvas ? 'grabbing' : 'grab'
+              cursor: isDraggingCanvas ? 'grabbing' : 'default'
             }}
           >
             <div className="graph-content" style={{
@@ -312,7 +312,7 @@ const GraphVisualizer = () => {
                     style={{
                       left: `${node.position.x}px`,
                       top: `${node.position.y}px`,
-                      cursor: isDraggingNode ? 'grabbing' : 'grab'
+                      cursor: isDraggingNode && draggedNode === node.id ? 'grabbing' : 'default'
                     }}
                   >
                     {index + 1}
