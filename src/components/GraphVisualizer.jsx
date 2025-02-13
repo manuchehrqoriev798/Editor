@@ -302,6 +302,10 @@ const GraphVisualizer = () => {
                 <div
                   key={node.id}
                   className="node-wrapper"
+                  style={{
+                    left: `${node.position.x + NODE_RADIUS}px`,
+                    top: `${node.position.y + NODE_RADIUS}px`
+                  }}
                   onMouseMove={(e) => handleNodeMouseMove(e, node.id)}
                   onMouseLeave={() => {
                     setAddButtonPosition(null);
@@ -312,8 +316,8 @@ const GraphVisualizer = () => {
                     className={`node ${hoveredNode === node.id ? 'node-hovered' : ''}`}
                     onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
                     style={{
-                      left: `${node.position.x}px`,
-                      top: `${node.position.y}px`,
+                      left: `-${NODE_RADIUS}px`,
+                      top: `-${NODE_RADIUS}px`,
                       cursor: isDraggingNode && draggedNode === node.id ? 'grabbing' : 'default'
                     }}
                   >
@@ -323,8 +327,8 @@ const GraphVisualizer = () => {
                     <button 
                       className="add-node-btn"
                       style={{
-                        left: `${addButtonPosition.x}px`,
-                        top: `${addButtonPosition.y}px`,
+                        left: `${addButtonPosition.x - node.position.x - NODE_RADIUS}px`,
+                        top: `${addButtonPosition.y - node.position.y - NODE_RADIUS}px`,
                         position: 'absolute'
                       }}
                       onClick={(e) => {
