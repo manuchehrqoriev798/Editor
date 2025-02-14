@@ -13,14 +13,81 @@ const TreeVisualizer = ({ onActivate, onBack }) => {
   const LEVEL_HEIGHT = 120;
   const NODE_WIDTH = 50;
 
+  const getSubtreeWidth = (nodeId, level) => {
+    const node = nodes.find(n => n.id === nodeId);
+    if (!node) return 0;
+    
+    // Width increases exponentially with level to ensure enough space
+    const spacing = Math.pow(2, level) * NODE_WIDTH * 1.5;
+    
+    if (!node.leftChildId && !node.rightChildId) {
+      return spacing;
+    }
+    
+    const leftWidth = node.leftChildId ? getSubtreeWidth(node.leftChildId, level + 1) : 0;
+    const rightWidth = node.rightChildId ? getSubtreeWidth(node.rightChildId, level + 1) : 0;
+    
+    return Math.max(spacing, leftWidth + rightWidth);
+  };
+
   const calculateNodePosition = (parentNode, isLeft) => {
     const level = parentNode.level + 1;
-    const horizontalSpacing = Math.max(200 / (level + 1), 80); // Decrease spacing for deeper levels
     
-    return {
-      x: parentNode.position.x + (isLeft ? -horizontalSpacing : horizontalSpacing),
+    // Get the parent's subtree width
+    const subtreeWidth = getSubtreeWidth(parentNode.id, level);
+    
+    // Calculate horizontal offset based on level
+    const horizontalOffset = subtreeWidth / 2;
+    
+    // Position relative to parent
+    const newPosition = {
+      x: parentNode.position.x + (isLeft ? -horizontalOffset : horizontalOffset),
       y: parentNode.position.y + LEVEL_HEIGHT
     };
+
+    return newPosition;
+  };
+
+  const updateAllNodePositions = (nodeList) => {
+    // Start with the root node
+    const rootNode = nodeList.find(n => n.isRoot);
+    if (!rootNode) return nodeList;
+
+    // Helper function to update positions recursively
+    const updatePositions = (nodeId, x, level) => {
+      let updatedNodes = [...nodeList];
+      const currentNode = updatedNodes.find(n => n.id === nodeId);
+      if (!currentNode) return updatedNodes;
+
+      // Update position
+      currentNode.position = { x, y: level * LEVEL_HEIGHT };
+      currentNode.level = level;
+
+      // Calculate subtree width for spacing
+      const subtreeWidth = getSubtreeWidth(nodeId, level);
+      const spacing = subtreeWidth / 2;
+
+      // Recursively update children
+      if (currentNode.leftChildId) {
+        updatedNodes = updatePositions(
+          currentNode.leftChildId,
+          x - spacing,
+          level + 1
+        );
+      }
+      if (currentNode.rightChildId) {
+        updatedNodes = updatePositions(
+          currentNode.rightChildId,
+          x + spacing,
+          level + 1
+        );
+      }
+
+      return updatedNodes;
+    };
+
+    // Start the recursive update from the root
+    return updatePositions(rootNode.id, window.innerWidth / 2, 0);
   };
 
   const addChild = (parentId, isLeft) => {
@@ -31,12 +98,11 @@ const TreeVisualizer = ({ onActivate, onBack }) => {
     if (isLeft && parent.leftChildId) return;
     if (!isLeft && parent.rightChildId) return;
 
-    const newPosition = calculateNodePosition(parent, isLeft);
     const newNode = {
       id: `node-${nodes.length + 1}`,
       label: (nodes.length + 1).toString(),
       level: parent.level + 1,
-      position: newPosition,
+      position: calculateNodePosition(parent, isLeft),
       isRoot: false,
       parentId: parentId,
       leftChildId: null,
@@ -49,11 +115,16 @@ const TreeVisualizer = ({ onActivate, onBack }) => {
       [isLeft ? 'leftChildId' : 'rightChildId']: newNode.id
     };
 
-    setNodes([
+    // Create new nodes array with the updated parent and new node
+    const updatedNodes = [
       ...nodes.filter(n => n.id !== parentId),
       updatedParent,
       newNode
-    ]);
+    ];
+
+    // Recalculate positions for all nodes
+    const recalculatedNodes = updateAllNodePositions(updatedNodes);
+    setNodes(recalculatedNodes);
   };
 
   const handleWheel = (e) => {
@@ -115,17 +186,16 @@ const TreeVisualizer = ({ onActivate, onBack }) => {
     };
   };
 
-  // Modify the useEffect for initial node creation
+  // Update the initial node creation to use the new positioning
   useEffect(() => {
-    // Wait for the tree area to be rendered
     setTimeout(() => {
       const rootNode = {
         id: 'node-1',
         label: '1',
         level: 0,
         position: {
-          x: (window.innerWidth / 2) - (NODE_WIDTH / 2),
-          y: 100  // Adjusted to be more visible
+          x: window.innerWidth / 2,
+          y: 100
         },
         isRoot: true,
         parentId: null,
