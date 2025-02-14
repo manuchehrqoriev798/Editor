@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './directedGraphVisualizer.css';
 
-const DirectedGraphVisualizer = ({ onActivate }) => {
+const DirectedGraphVisualizer = ({ onActivate, onBack }) => {
   const [nodes, setNodes] = useState([]);
   const [connections, setConnections] = useState([]);
-  const [isGraphCreated, setIsGraphCreated] = useState(false);
+  const [isGraphCreated, setIsGraphCreated] = useState(true);
   const graphAreaRef = useRef(null);
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -16,6 +16,18 @@ const DirectedGraphVisualizer = ({ onActivate }) => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectingFrom, setConnectingFrom] = useState(null);
   const [cycles, setCycles] = useState(new Set());
+
+  useEffect(() => {
+    const initialNode = {
+      id: 'node-1',
+      label: '1',
+      position: {
+        x: window.innerWidth / 2 - 30,
+        y: window.innerHeight / 2 - 30
+      }
+    };
+    setNodes([initialNode]);
+  }, []);
 
   const handleCreateGraph = () => {
     setIsGraphCreated(true);
@@ -165,11 +177,12 @@ const DirectedGraphVisualizer = ({ onActivate }) => {
 
   return (
     <div className="directed-graph-visualizer">
-      {!isGraphCreated ? (
-        <button className="graph-control-btn" onClick={handleCreateGraph}>
-          Create Graph
-        </button>
-      ) : (
+      <div className="graph-container">
+        <div className="graph-controls">
+          <button className="back-btn" onClick={onBack}>
+            Back to Home
+          </button>
+        </div>
         <div className="graph-area"
           ref={graphAreaRef}
           onMouseDown={handleCanvasDragStart}
@@ -241,7 +254,7 @@ const DirectedGraphVisualizer = ({ onActivate }) => {
             ))}
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

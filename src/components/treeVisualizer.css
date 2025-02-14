@@ -27,9 +27,9 @@
 .tree-node {
   width: 50px;
   height: 50px;
-  background: linear-gradient(145deg, #ffffff, #e6e6e6);
-  border: 2px solid #2c3e50;
-  border-radius: 50%;
+  padding: 30px;
+  margin: -30px;
+  background: none;
   position: absolute;
   display: flex;
   justify-content: center;
@@ -40,12 +40,23 @@
   transition: all 0.3s ease;
 }
 
-.tree-node.root {
+.tree-node::before {
+  content: '';
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(145deg, #ffffff, #e6e6e6);
+  border: 2px solid #2c3e50;
+  border-radius: 50%;
+  z-index: -1;
+}
+
+.tree-node.root::before {
   border-color: #e74c3c;
   background: linear-gradient(145deg, #fff5f5, #ffe5e5);
 }
 
-.tree-node:hover {
+.tree-node:hover::before {
   transform: scale(1.05);
   box-shadow: 0 0 15px rgba(0,0,0,0.1);
 }
@@ -104,6 +115,7 @@
   right: 10px;
   display: flex;
   gap: 10px;
+  z-index: 9999;
 }
 
 .tree-control-btn {
@@ -120,4 +132,73 @@
 .tree-control-btn:hover {
   background-color: #45a049;
   transform: scale(1.05);
+}
+
+.back-btn {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: #666;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  z-index: 9999;
+}
+
+.tree-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.node-input {
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-size: 14px;
+  outline: none;
+  padding: 0;
+}
+
+.node-input::placeholder {
+  color: #999;
+}
+
+.zoom-controls {
+  position: absolute;
+  right: 20px;
+  bottom: 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  z-index: 10;
+  background: white;
+  padding: 5px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.zoom-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: #333;
+  transition: all 0.2s ease;
+}
+
+.zoom-level {
+  text-align: center;
+  font-size: 12px;
+  color: #666;
+  padding: 4px 0;
 } 

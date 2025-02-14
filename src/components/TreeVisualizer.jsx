@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './treeVisualizer.css';
 
-const TreeVisualizer = ({ onActivate }) => {
+const TreeVisualizer = ({ onActivate, onBack }) => {
   const [nodes, setNodes] = useState([]);
-  const [isTreeCreated, setIsTreeCreated] = useState(false);
+  const [isTreeCreated, setIsTreeCreated] = useState(true);
   const treeAreaRef = useRef(null);
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -12,26 +12,6 @@ const TreeVisualizer = ({ onActivate }) => {
   const [hoveredNode, setHoveredNode] = useState(null);
   const LEVEL_HEIGHT = 120;
   const NODE_WIDTH = 50;
-
-  const handleCreateTree = () => {
-    setIsTreeCreated(true);
-    onActivate();
-    // Create root node
-    const rootNode = {
-      id: 'node-1',
-      label: '1',
-      level: 0,
-      position: {
-        x: window.innerWidth / 2 - 25,
-        y: 60
-      },
-      isRoot: true,
-      parentId: null,
-      leftChildId: null,
-      rightChildId: null
-    };
-    setNodes([rootNode]);
-  };
 
   const calculateNodePosition = (parentNode, isLeft) => {
     const level = parentNode.level + 1;
@@ -135,19 +115,46 @@ const TreeVisualizer = ({ onActivate }) => {
     };
   };
 
+  // Modify the useEffect for initial node creation
+  useEffect(() => {
+    // Wait for the tree area to be rendered
+    setTimeout(() => {
+      const rootNode = {
+        id: 'node-1',
+        label: '1',
+        level: 0,
+        position: {
+          x: (window.innerWidth / 2) - (NODE_WIDTH / 2),
+          y: 100  // Adjusted to be more visible
+        },
+        isRoot: true,
+        parentId: null,
+        leftChildId: null,
+        rightChildId: null
+      };
+      setNodes([rootNode]);
+      setIsTreeCreated(true);
+      if (onActivate) onActivate();
+    }, 0);
+  }, []);
+
   return (
     <div className="tree-visualizer">
-      {!isTreeCreated ? (
-        <button className="tree-control-btn" onClick={handleCreateTree}>
-          Create Tree
-        </button>
-      ) : (
+      <div className="tree-container">
+        <div className="tree-controls">
+          <button className="back-btn" onClick={onBack}>
+            Back to Home
+          </button>
+        </div>
         <div className="tree-area" 
           ref={treeAreaRef}
           onMouseDown={handleCanvasDragStart}
           onMouseMove={handleCanvasDrag}
           onMouseUp={handleCanvasDragEnd}
           onMouseLeave={handleCanvasDragEnd}
+          style={{
+            cursor: isDraggingCanvas ? 'grabbing' : 'default'
+          }}
         >
           <div className="tree-content" style={{
             transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
@@ -174,7 +181,19 @@ const TreeVisualizer = ({ onActivate }) => {
                 onMouseEnter={() => setHoveredNode(node.id)}
                 onMouseLeave={() => setHoveredNode(null)}
               >
-                {node.label}
+                <input
+                  type="text"
+                  value={node.label}
+                  onChange={(e) => {
+                    const newNodes = nodes.map(n =>
+                      n.id === node.id ? { ...n, label: e.target.value } : n
+                    );
+                    setNodes(newNodes);
+                  }}
+                  className="node-input"
+                  onClick={(e) => e.stopPropagation()}
+                  placeholder="?"
+                />
                 {hoveredNode === node.id && (
                   <>
                     {!node.leftChildId && (
@@ -198,8 +217,25 @@ const TreeVisualizer = ({ onActivate }) => {
               </div>
             ))}
           </div>
+          <div className="zoom-controls">
+            <button 
+              className="zoom-btn" 
+              onClick={() => setScale(prev => Math.min(4, prev + 0.1))}
+              title="Zoom In"
+            >
+              +
+            </button>
+            <div className="zoom-level">{Math.round(scale * 100)}%</div>
+            <button 
+              className="zoom-btn" 
+              onClick={() => setScale(prev => Math.max(0.1, prev - 0.1))}
+              title="Zoom Out"
+            >
+              −
+            </button>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

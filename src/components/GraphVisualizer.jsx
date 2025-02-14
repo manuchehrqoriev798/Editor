@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './graphVisualizer.css';
 
-const GraphVisualizer = () => {
-  const [isGraphCreated, setIsGraphCreated] = useState(false);
+const GraphVisualizer = ({ onBack }) => {
+  const [isGraphCreated, setIsGraphCreated] = useState(true);
   const [nodes, setNodes] = useState([]);
   const graphAreaRef = useRef(null);
   const [hoveredNode, setHoveredNode] = useState(null);
@@ -19,6 +19,19 @@ const GraphVisualizer = () => {
   const INTERACTION_RADIUS = 40; // Distance from node edge where interaction is allowed
   const [deletingNodes, setDeletingNodes] = useState(new Set());
   const [newNodeId, setNewNodeId] = useState(null);
+
+  // Automatically create initial node when component mounts
+  useEffect(() => {
+    const initialNode = {
+      id: `node-${Date.now()}`,
+      label: '',
+      position: {
+        x: window.innerWidth / 2 - 20,
+        y: window.innerHeight / 2 - 20,
+      },
+    };
+    setNodes([initialNode]);
+  }, []);
 
   const handleCreateGraph = () => {
     setIsGraphCreated(true);
@@ -338,145 +351,144 @@ const GraphVisualizer = () => {
 
   return (
     <div className="graph-visualizer">
-      {!isGraphCreated ? (
-        <button className="create-graph-btn" onClick={handleCreateGraph}>
-          Create Graph
-        </button>
-      ) : (
-        <div className="graph-container">
-          <div 
-            className="graph-area" 
-            ref={graphAreaRef}
-            onDragOver={(e) => e.preventDefault()}
-            onClick={handleGraphAreaClick}
-            onMouseDown={handleCanvasDragStart}
-            onMouseMove={(e) => {
-              if (isDraggingNode) {
-                handleNodeMouseMove(e, draggedNode);
-              } else {
-                handleCanvasDrag(e);
-              }
-            }}
-            onMouseUp={(e) => {
-              if (isDraggingNode) {
-                handleNodeMouseUp(e);
-              } else {
-                handleCanvasDragEnd();
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (isDraggingNode) {
-                handleNodeMouseUp(e);
-              } else {
-                handleCanvasDragEnd();
-              }
-            }}
-            style={{
-              cursor: isDraggingCanvas ? 'grabbing' : 'default'
-            }}
-          >
-            <div className="graph-content" style={{
-              transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
-              transformOrigin: '0 0'
-            }}>
-              {connections.map((connection, index) => {
-                const fromNode = nodes.find(node => node.id === connection.from);
-                const toNode = nodes.find(node => node.id === connection.to);
-                if (!fromNode || !toNode) return null;
+      <div className="graph-container">
+        <div className="graph-controls">
+          <button className="back-btn" onClick={onBack}>
+            Back to Home
+          </button>
+        </div>
+        <div 
+          className="graph-area" 
+          ref={graphAreaRef}
+          onDragOver={(e) => e.preventDefault()}
+          onClick={handleGraphAreaClick}
+          onMouseDown={handleCanvasDragStart}
+          onMouseMove={(e) => {
+            if (isDraggingNode) {
+              handleNodeMouseMove(e, draggedNode);
+            } else {
+              handleCanvasDrag(e);
+            }
+          }}
+          onMouseUp={(e) => {
+            if (isDraggingNode) {
+              handleNodeMouseUp(e);
+            } else {
+              handleCanvasDragEnd();
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (isDraggingNode) {
+              handleNodeMouseUp(e);
+            } else {
+              handleCanvasDragEnd();
+            }
+          }}
+          style={{
+            cursor: isDraggingCanvas ? 'grabbing' : 'default'
+          }}
+        >
+          <div className="graph-content" style={{
+            transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
+            transformOrigin: '0 0'
+          }}>
+            {connections.map((connection, index) => {
+              const fromNode = nodes.find(node => node.id === connection.from);
+              const toNode = nodes.find(node => node.id === connection.to);
+              if (!fromNode || !toNode) return null;
 
-                const lineProps = calculateLineProperties(fromNode, toNode);
+              const lineProps = calculateLineProperties(fromNode, toNode);
 
-                return (
-                  <div
-                    key={`connection-${index}`}
-                    className="connection-line"
-                    style={{
-                      left: `${lineProps.left}px`,
-                      top: `${lineProps.top}px`,
-                      width: `${lineProps.width}px`,
-                      transform: lineProps.transform,
-                    }}
-                  >
-                    <div className="arrow-head" />
-                  </div>
-                );
-              })}
-              {nodes.map((node) => (
+              return (
                 <div
-                  key={node.id}
-                  className="node-wrapper"
+                  key={`connection-${index}`}
+                  className="connection-line"
                   style={{
-                    left: `${node.position.x + NODE_RADIUS}px`,
-                    top: `${node.position.y + NODE_RADIUS}px`
-                  }}
-                  onMouseMove={(e) => handleNodeMouseMove(e, node.id)}
-                  onMouseLeave={() => {
-                    setAddButtonPosition(null);
-                    setHoveredNode(null);
+                    left: `${lineProps.left}px`,
+                    top: `${lineProps.top}px`,
+                    width: `${lineProps.width}px`,
+                    transform: lineProps.transform,
                   }}
                 >
-                  <div
-                    className={`node ${
-                      newNodeId === node.id ? 'appear' : ''
-                    } ${
-                      deletingNodes.has(node.id) ? 'delete' : ''
-                    } ${
-                      hoveredNode === node.id ? 'node-hovered' : ''
-                    }`}
-                    onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
-                    style={{
-                      left: `-${NODE_RADIUS}px`,
-                      top: `-${NODE_RADIUS}px`,
-                      cursor: isDraggingNode && draggedNode === node.id ? 'grabbing' : 'default'
-                    }}
-                  >
-                    <input
-                      type="text"
-                      value={node.label}
-                      onChange={(e) => handleLabelChange(node.id, e.target.value)}
-                      className="node-input"
-                      onClick={(e) => e.stopPropagation()}
-                      placeholder="?"
-                    />
-                    {hoveredNode === node.id && (
-                      <button 
-                        className="delete-node-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteNode(node.id);
-                        }}
-                      >
-                        ×
-                      </button>
-                    )}
-                  </div>
-                  {hoveredNode === node.id && addButtonPosition && (
+                  <div className="arrow-head" />
+                </div>
+              );
+            })}
+            {nodes.map((node) => (
+              <div
+                key={node.id}
+                className="node-wrapper"
+                style={{
+                  left: `${node.position.x + NODE_RADIUS}px`,
+                  top: `${node.position.y + NODE_RADIUS}px`
+                }}
+                onMouseMove={(e) => handleNodeMouseMove(e, node.id)}
+                onMouseLeave={() => {
+                  setAddButtonPosition(null);
+                  setHoveredNode(null);
+                }}
+              >
+                <div
+                  className={`node ${
+                    newNodeId === node.id ? 'appear' : ''
+                  } ${
+                    deletingNodes.has(node.id) ? 'delete' : ''
+                  } ${
+                    hoveredNode === node.id ? 'node-hovered' : ''
+                  }`}
+                  onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
+                  style={{
+                    left: `-${NODE_RADIUS}px`,
+                    top: `-${NODE_RADIUS}px`,
+                    cursor: isDraggingNode && draggedNode === node.id ? 'grabbing' : 'default'
+                  }}
+                >
+                  <input
+                    type="text"
+                    value={node.label}
+                    onChange={(e) => handleLabelChange(node.id, e.target.value)}
+                    className="node-input"
+                    onClick={(e) => e.stopPropagation()}
+                    placeholder="?"
+                  />
+                  {hoveredNode === node.id && (
                     <button 
-                      className="add-node-btn"
-                      style={{
-                        left: `${addButtonPosition.x - node.position.x - NODE_RADIUS}px`,
-                        top: `${addButtonPosition.y - node.position.y - NODE_RADIUS}px`,
-                        position: 'absolute'
-                      }}
+                      className="delete-node-btn"
                       onClick={(e) => {
                         e.stopPropagation();
-                        addNodeAtAngle(node, cursorAngle);
+                        handleDeleteNode(node.id);
                       }}
                     >
-                      +
+                      ×
                     </button>
                   )}
                 </div>
-              ))}
-            </div>
-            <div className="zoom-controls">
-              <button className="zoom-btn" onClick={handleZoomIn} title="Zoom In">+</button>
-              <div className="zoom-level">{Math.round(scale * 100)}%</div>
-              <button className="zoom-btn" onClick={handleZoomOut} title="Zoom Out">−</button>
-            </div>
+                {hoveredNode === node.id && addButtonPosition && (
+                  <button 
+                    className="add-node-btn"
+                    style={{
+                      left: `${addButtonPosition.x - node.position.x - NODE_RADIUS}px`,
+                      top: `${addButtonPosition.y - node.position.y - NODE_RADIUS}px`,
+                      position: 'absolute'
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      addNodeAtAngle(node, cursorAngle);
+                    }}
+                  >
+                    +
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="zoom-controls">
+            <button className="zoom-btn" onClick={handleZoomIn} title="Zoom In">+</button>
+            <div className="zoom-level">{Math.round(scale * 100)}%</div>
+            <button className="zoom-btn" onClick={handleZoomOut} title="Zoom Out">−</button>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
