@@ -292,6 +292,50 @@ const GraphVisualizer = () => {
     ));
   };
 
+  const handleZoomIn = () => {
+    setScale(prevScale => {
+      const newScale = Math.min(4, prevScale + 0.1);
+      
+      // Get the viewport dimensions
+      const viewportWidth = graphAreaRef.current.clientWidth;
+      const viewportHeight = graphAreaRef.current.clientHeight;
+      
+      // Calculate the center point of the viewport
+      const centerX = viewportWidth / 2;
+      const centerY = viewportHeight / 2;
+      
+      // Adjust the offset to maintain the center point
+      setOffset(prevOffset => ({
+        x: centerX - (centerX - prevOffset.x) * (newScale / prevScale),
+        y: centerY - (centerY - prevOffset.y) * (newScale / prevScale)
+      }));
+      
+      return newScale;
+    });
+  };
+
+  const handleZoomOut = () => {
+    setScale(prevScale => {
+      const newScale = Math.max(0.1, prevScale - 0.1);
+      
+      // Get the viewport dimensions
+      const viewportWidth = graphAreaRef.current.clientWidth;
+      const viewportHeight = graphAreaRef.current.clientHeight;
+      
+      // Calculate the center point of the viewport
+      const centerX = viewportWidth / 2;
+      const centerY = viewportHeight / 2;
+      
+      // Adjust the offset to maintain the center point
+      setOffset(prevOffset => ({
+        x: centerX - (centerX - prevOffset.x) * (newScale / prevScale),
+        y: centerY - (centerY - prevOffset.y) * (newScale / prevScale)
+      }));
+      
+      return newScale;
+    });
+  };
+
   return (
     <div className="graph-visualizer">
       {!isGraphCreated ? (
@@ -424,6 +468,11 @@ const GraphVisualizer = () => {
                   )}
                 </div>
               ))}
+            </div>
+            <div className="zoom-controls">
+              <button className="zoom-btn" onClick={handleZoomIn} title="Zoom In">+</button>
+              <div className="zoom-level">{Math.round(scale * 100)}%</div>
+              <button className="zoom-btn" onClick={handleZoomOut} title="Zoom Out">−</button>
             </div>
           </div>
         </div>
