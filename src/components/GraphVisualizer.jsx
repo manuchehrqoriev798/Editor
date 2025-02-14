@@ -17,6 +17,8 @@ const GraphVisualizer = () => {
   const [cursorAngle, setCursorAngle] = useState(0);
   const NODE_RADIUS = 20; // Half of node width
   const INTERACTION_RADIUS = 40; // Distance from node edge where interaction is allowed
+  const [deletingNodes, setDeletingNodes] = useState(new Set());
+  const [newNodeId, setNewNodeId] = useState(null);
 
   const handleCreateGraph = () => {
     setIsGraphCreated(true);
@@ -188,8 +190,8 @@ const GraphVisualizer = () => {
     }
 
     const newNode = {
-      id: `node-${Date.now()}`, // Use timestamp for unique IDs
-      label: '', // Empty label by default
+      id: `node-${Date.now()}`,
+      label: '',
       position: newPosition,
     };
     
@@ -200,6 +202,11 @@ const GraphVisualizer = () => {
 
     setNodes([...nodes, newNode]);
     setConnections([...connections, newConnection]);
+    
+    // Set the new node ID to trigger animation
+    setNewNodeId(newNode.id);
+    // Clear the animation class after animation completes
+    setTimeout(() => setNewNodeId(null), 500);
   };
 
   const calculateLineProperties = (fromNode, toNode) => {
@@ -236,35 +243,46 @@ const GraphVisualizer = () => {
   };
 
   const handleDeleteNode = (nodeId) => {
-    // Find all connections involving this node
-    const nodeConnections = connections.filter(
-      conn => conn.from === nodeId || conn.to === nodeId
-    );
+    // Add node to deleting set
+    setDeletingNodes(prev => new Set([...prev, nodeId]));
 
-    // Create new connections between nodes that were connected through the deleted node
-    const newConnections = [];
-    const incomingConnections = nodeConnections.filter(conn => conn.to === nodeId);
-    const outgoingConnections = nodeConnections.filter(conn => conn.from === nodeId);
+    // Wait for animation to complete before removing the node
+    setTimeout(() => {
+      // Find all connections involving this node
+      const nodeConnections = connections.filter(
+        conn => conn.from === nodeId || conn.to === nodeId
+      );
 
-    // Connect incoming nodes to outgoing nodes
-    incomingConnections.forEach(inConn => {
-      outgoingConnections.forEach(outConn => {
-        newConnections.push({
-          from: inConn.from,
-          to: outConn.to
+      // Create new connections between nodes that were connected through the deleted node
+      const newConnections = [];
+      const incomingConnections = nodeConnections.filter(conn => conn.to === nodeId);
+      const outgoingConnections = nodeConnections.filter(conn => conn.from === nodeId);
+
+      // Connect incoming nodes to outgoing nodes
+      incomingConnections.forEach(inConn => {
+        outgoingConnections.forEach(outConn => {
+          newConnections.push({
+            from: inConn.from,
+            to: outConn.to
+          });
         });
       });
-    });
 
-    // Filter out connections involving the deleted node and add new connections
-    setConnections([
-      ...connections.filter(conn => conn.from !== nodeId && conn.to !== nodeId),
-      ...newConnections
-    ]);
+      // Filter out connections involving the deleted node and add new connections
+      setConnections([
+        ...connections.filter(conn => conn.from !== nodeId && conn.to !== nodeId),
+        ...newConnections
+      ]);
 
-    // Remove the node without changing other nodes' labels
-    setNodes(nodes.filter(node => node.id !== nodeId));
-    setHoveredNode(null);
+      // Remove the node
+      setNodes(nodes.filter(node => node.id !== nodeId));
+      setHoveredNode(null);
+      setDeletingNodes(prev => {
+        const updated = new Set(prev);
+        updated.delete(nodeId);
+        return updated;
+      });
+    }, 300); // Match this timing with the CSS animation duration
   };
 
   // Add this new handler for label changes
@@ -354,7 +372,13 @@ const GraphVisualizer = () => {
                   }}
                 >
                   <div
-                    className={`node ${hoveredNode === node.id ? 'node-hovered' : ''}`}
+                    className={`node ${
+                      newNodeId === node.id ? 'appear' : ''
+                    } ${
+                      deletingNodes.has(node.id) ? 'delete' : ''
+                    } ${
+                      hoveredNode === node.id ? 'node-hovered' : ''
+                    }`}
                     onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
                     style={{
                       left: `-${NODE_RADIUS}px`,
