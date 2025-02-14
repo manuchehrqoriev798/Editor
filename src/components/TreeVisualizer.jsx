@@ -48,46 +48,59 @@ const TreeVisualizer = ({ onActivate, onBack }) => {
     return newPosition;
   };
 
-  const updateAllNodePositions = (nodeList) => {
-    // Start with the root node
-    const rootNode = nodeList.find(n => n.isRoot);
-    if (!rootNode) return nodeList;
+  const updateAffectedNodePositions = (nodeList, startNodeId) => {
+    // Find the path from the new node to the root
+    const getPathToRoot = (nodeId, path = []) => {
+      const node = nodeList.find(n => n.id === nodeId);
+      if (!node) return path;
+      path.push(node.id);
+      if (node.parentId) {
+        return getPathToRoot(node.parentId, path);
+      }
+      return path;
+    };
 
-    // Helper function to update positions recursively
-    const updatePositions = (nodeId, x, level) => {
-      let updatedNodes = [...nodeList];
+    const affectedNodeIds = getPathToRoot(startNodeId);
+    let updatedNodes = [...nodeList];
+
+    // Update only the affected subtree
+    const updateSubtree = (nodeId, x, level) => {
       const currentNode = updatedNodes.find(n => n.id === nodeId);
-      if (!currentNode) return updatedNodes;
+      if (!currentNode) return;
 
-      // Update position
-      currentNode.position = { x, y: level * LEVEL_HEIGHT };
-      currentNode.level = level;
+      // Only update position if this node is in the affected path
+      if (affectedNodeIds.includes(nodeId)) {
+        currentNode.position = { x, y: level * LEVEL_HEIGHT };
+        currentNode.level = level;
+      }
 
-      // Calculate subtree width for spacing
       const subtreeWidth = getSubtreeWidth(nodeId, level);
       const spacing = subtreeWidth / 2;
 
-      // Recursively update children
+      // Recursively update children if they're in the affected path
       if (currentNode.leftChildId) {
-        updatedNodes = updatePositions(
+        updateSubtree(
           currentNode.leftChildId,
           x - spacing,
           level + 1
         );
       }
       if (currentNode.rightChildId) {
-        updatedNodes = updatePositions(
+        updateSubtree(
           currentNode.rightChildId,
           x + spacing,
           level + 1
         );
       }
-
-      return updatedNodes;
     };
 
-    // Start the recursive update from the root
-    return updatePositions(rootNode.id, window.innerWidth / 2, 0);
+    // Find the highest affected node (closest to root)
+    const highestAffectedNode = nodeList.find(n => n.id === affectedNodeIds[affectedNodeIds.length - 1]);
+    
+    // Start update from the highest affected node
+    updateSubtree(highestAffectedNode.id, highestAffectedNode.position.x, highestAffectedNode.level);
+
+    return updatedNodes;
   };
 
   const addChild = (parentId, isLeft) => {
@@ -122,8 +135,8 @@ const TreeVisualizer = ({ onActivate, onBack }) => {
       newNode
     ];
 
-    // Recalculate positions for all nodes
-    const recalculatedNodes = updateAllNodePositions(updatedNodes);
+    // Only recalculate positions for affected nodes
+    const recalculatedNodes = updateAffectedNodePositions(updatedNodes, newNode.id);
     setNodes(recalculatedNodes);
   };
 
