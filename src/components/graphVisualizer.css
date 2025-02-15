@@ -28,7 +28,7 @@
   height: 100%;
 }
 
-.add-buttons-container {
+.graph-add-buttons-container {
   position: absolute;
   width: 100px;
   height: 100px;
@@ -53,22 +53,22 @@
   transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
-.add-node-btn.left {
+.graph-add-node-btn.left {
   left: 0;
   top: 40px;
 }
 
-.add-node-btn.right {
+.graph-add-node-btn.right {
   left: 80px;
   top: 40px;
 }
 
-.add-node-btn.top {
+.graph-add-node-btn.top {
   left: 40px;
   top: 0;
 }
 
-.add-node-btn.bottom {
+.graph-add-node-btn.bottom {
   left: 40px;
   top: 80px;
 }
@@ -96,33 +96,36 @@
   transition: transform 0.05s linear;
 }
 
-.node {
+.graph-node-wrapper {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  z-index: 2;
+}
+
+.graph-node {
   width: 40px;
   height: 40px;
   background: linear-gradient(145deg, #ffffff, #e6e6e6);
   border: 2px solid #333;
   border-radius: 50%;
-  position: absolute;
   display: flex;
   justify-content: center;
   align-items: center;
-  cursor: move;
-  user-select: none;
-  z-index: 1;
+  position: relative;
   transition: all 0.3s ease;
-  padding: 0;
-  overflow: visible;
   box-shadow: 5px 5px 15px #d1d1d1,
              -5px -5px 15px #ffffff;
+  z-index: 2;
 }
 
-.node:hover {
+.graph-node:hover {
   transform: scale(1.05);
   box-shadow: 7px 7px 20px #d1d1d1,
              -7px -7px 20px #ffffff;
 }
 
-.node-hovered {
+.graph-node-hovered {
   border-color: #2196F3;
   box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.3);
 }
@@ -142,7 +145,7 @@
   position: absolute;
   top: -1px;
   left: 0;
-  right: 8px; /* Space for arrow head */
+  right: 8px;
   height: 2px;
   background: linear-gradient(90deg, #333, #666);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -159,7 +162,7 @@
   clip-path: polygon(0 0, 100% 50%, 0 100%);
 }
 
-.delete-node-btn {
+.graph-delete-node-btn {
   position: absolute;
   top: -8px;
   right: -8px;
@@ -180,12 +183,12 @@
   transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
-.delete-node-btn:hover {
+.graph-delete-node-btn:hover {
   background-color: #cc0000;
   transform: scale(1.1);
 }
 
-.node-input {
+.graph-node-input {
   width: 30px;
   height: 30px;
   border: none;
@@ -196,23 +199,15 @@
   padding: 0;
 }
 
-.node-input::placeholder {
-  color: #999;
+.graph-node.graph-appear {
+  animation: graphNodeAppearPulse 0.5s ease-out;
 }
 
-/* Add these new animations to your CSS file */
-
-/* Node creation animation with pulse */
-.node.appear {
-  animation: nodeAppearPulse 0.5s ease-out;
+.graph-node.graph-delete {
+  animation: graphNodeDelete 0.3s ease-out forwards;
 }
 
-/* Node deletion animation */
-.node.delete {
-  animation: nodeDelete 0.3s ease-out forwards;
-}
-
-@keyframes nodeAppearPulse {
+@keyframes graphNodeAppearPulse {
   0% {
     transform: scale(0);
     opacity: 0;
@@ -227,7 +222,7 @@
   }
 }
 
-@keyframes nodeDelete {
+@keyframes graphNodeDelete {
   0% {
     transform: scale(1);
     opacity: 1;
@@ -250,7 +245,7 @@
   animation: flowAnimation 2s linear infinite;
 }
 
-.zoom-controls {
+.graph-zoom-controls {
   position: absolute;
   right: 20px;
   bottom: 60px;
@@ -264,7 +259,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.zoom-btn {
+.graph-zoom-btn {
   width: 32px;
   height: 32px;
   border: 1px solid #ddd;
@@ -279,27 +274,21 @@
   transition: all 0.2s ease;
 }
 
-.zoom-btn:hover {
+.graph-zoom-btn:hover {
   background: #f5f5f5;
   transform: scale(1.05);
 }
 
-.zoom-btn:active {
+.graph-zoom-btn:active {
   background: #e5e5e5;
   transform: scale(0.95);
 }
 
-.zoom-level {
+.graph-zoom-level {
   text-align: center;
   font-size: 12px;
   color: #666;
   padding: 4px 0;
-}
-
-.initial-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
 }
 
 .graph-controls {
@@ -311,7 +300,7 @@
   z-index: 9999; /* Increased z-index */
 }
 
-.back-btn {
+.graph-back-btn {
   padding: 10px 20px;
   font-size: 16px;
   cursor: pointer;
@@ -323,7 +312,32 @@
   z-index: 9999; /* Increased z-index */
 }
 
-.back-btn:hover {
+.graph-back-btn:hover {
   background-color: #555;
   transform: scale(1.05);
+}
+
+.graph-add-node-btn {
+  width: 24px;
+  height: 24px;
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0;
+  z-index: 3;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.graph-add-node-btn:hover {
+  background-color: #1976D2;
+  transform: scale(1.1);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
 }

@@ -1,38 +1,30 @@
 .linked-list-visualizer {
-  width: 100vw;
-  height: 100vh;
-  background-color: #f5f5f5;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .list-container {
   width: 100%;
   height: 100%;
   position: relative;
-  overflow: hidden;
-}
-
-.list-controls {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  z-index: 1000;
-  display: flex;
-  gap: 10px;
 }
 
 .list-area {
   width: 100%;
-  height: 100%;
+  height: calc(100% - 40px);
+  margin-top: 40px;
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
   position: relative;
-  cursor: default !important;
+  overflow: hidden;
+  touch-action: none;
+  cursor: auto !important;
 }
 
 .list-area:active {
-  cursor: grabbing;
-}
-
-/* When actively dragging the canvas */
-.list-area.dragging {
   cursor: grabbing !important;
 }
 
@@ -40,51 +32,161 @@
   position: absolute;
   width: 100%;
   height: 100%;
+  transition: transform 0.05s linear;
 }
 
-.list-node-container {
+.nodes-container {
+  display: flex;
   position: absolute;
-  width: 100%;
-  height: 100%;
-  padding: 50px;
-  margin: -50px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  align-items: center;
 }
 
-.list-node {
-  position: absolute;
-  width: 50px;
-  height: 50px;
-  background: none;
+.node-wrapper {
   display: flex;
   align-items: center;
-  justify-content: center;
-  cursor: default !important;
-  transition: all 0.3s ease;
-  padding: 30px;
-  margin: -30px;
+  position: relative;
+  margin: 0 40px;
+  padding: 0 30px;
 }
 
-.list-node::before {
+.node {
+  width: 80px;
+  height: 40px;
+  background: linear-gradient(145deg, #ffffff, #e6e6e6);
+  border: 2px solid #333;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  transition: all 0.3s ease;
+  box-shadow: 5px 5px 15px #d1d1d1,
+             -5px -5px 15px #ffffff;
+}
+
+.node:hover {
+  transform: scale(1.05);
+  box-shadow: 7px 7px 20px #d1d1d1,
+             -7px -7px 20px #ffffff;
+}
+
+.node-hovered {
+  border-color: #2196F3;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.3);
+}
+
+.add-node-btn {
+  width: 20px;
+  height: 20px;
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+  z-index: 3;
+  position: absolute;
+  transition: background-color 0.2s ease;
+}
+
+.add-node-btn.left {
+  left: -25px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.add-node-btn.right {
+  right: 0px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.node-wrapper:hover .add-node-btn {
+  display: flex;
+}
+
+.add-node-btn:hover {
+  background-color: #1976D2;
+}
+
+.connection-line {
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  width: 80px;
+  display: flex;
+  align-items: center;
+}
+
+.connection-line::before {
   content: '';
   position: absolute;
-  width: 50px;
-  height: 50px;
-  background: linear-gradient(145deg, #ffffff, #e6e6e6);
-  border: 2px solid #2c3e50;
-  border-radius: 50%;
-  z-index: -1;
+  width: 100%;
+  height: 3px;
+  background-color: #333;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.list-node:hover::before {
-  transform: scale(1.05);
-  box-shadow: 0 0 15px rgba(0,0,0,0.1);
-}
-
-.list-arrow {
+.arrow-head {
   position: absolute;
-  font-size: 24px;
-  color: #333;
-  pointer-events: none;
+  right: -2px;
+  width: 0;
+  height: 0;
+  border-left: 12px solid #333;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.1));
+  transition: all 0.3s ease;
+}
+
+.connection-line:hover::before {
+  background-color: #2196F3;
+  height: 4px;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+}
+
+.connection-line:hover .arrow-head {
+  border-left: 14px solid #2196F3;
+  border-top: 9px solid transparent;
+  border-bottom: 9px solid transparent;
+  filter: drop-shadow(0 2px 4px rgba(33, 150, 243, 0.3));
+}
+
+.delete-node-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 20px;
+  height: 20px;
+  background-color: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+  z-index: 2;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.delete-node-btn:hover {
+  background-color: #cc0000;
+  transform: scale(1.1);
 }
 
 .node-input {
@@ -102,99 +204,108 @@
   color: #999;
 }
 
-.insert-node-btn {
+.node.appear {
+  animation: nodeAppearPulse 0.5s ease-out;
+}
+
+.node.delete {
+  animation: nodeDelete 0.3s ease-out forwards;
+}
+
+@keyframes nodeAppearPulse {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes nodeDelete {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+
+.zoom-controls {
   position: absolute;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background-color: #27ae60;
-  color: white;
-  border: none;
+  right: 20px;
+  bottom: 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  z-index: 10;
+  background: white;
+  padding: 5px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.zoom-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 4px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 18px;
+  color: #333;
   transition: all 0.2s ease;
-  z-index: 2;
 }
 
-.insert-node-btn:hover {
-  background-color: #219a52;
-  transform: scale(1.1);
+.zoom-btn:hover {
+  background: #f5f5f5;
+  transform: scale(1.05);
 }
 
-.insert-node-btn.left {
-  left: -40px;
-  top: 50%;
-  transform: translateY(-50%);
+.zoom-btn:active {
+  background: #e5e5e5;
+  transform: scale(0.95);
 }
 
-.insert-node-btn.right {
-  right: -40px;
-  top: 50%;
-  transform: translateY(-50%);
+.zoom-level {
+  text-align: center;
+  font-size: 12px;
+  color: #666;
+  padding: 4px 0;
 }
 
-.delete-node-btn {
+.list-controls {
   position: absolute;
-  top: -40px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background-color: #ff4444;
-  color: white;
-  border: none;
-  cursor: pointer;
+  top: 10px;
+  right: 10px;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  transition: all 0.2s ease;
-  z-index: 2;
-}
-
-.delete-node-btn:hover {
-  background-color: #cc0000;
-  transform: translateX(-50%) scale(1.1);
+  gap: 10px;
+  z-index: 9999;
 }
 
 .back-btn {
-  padding: 8px 16px;
-  background-color: #333;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: #666;
   color: white;
   border: none;
   border-radius: 4px;
-  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 9999;
 }
 
 .back-btn:hover {
   background-color: #555;
+  transform: scale(1.05);
 }
-
-/* Add animation for node insertion */
-@keyframes nodeInsert {
-  from {
-    opacity: 0;
-    transform: scale(0.5);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.list-node {
-  animation: nodeInsert 0.3s ease-out;
-}
-
-/* Connection line between nodes */
-.list-connection {
-  position: absolute;
-  height: 2px;
-  background-color: #2c3e50;
-  transform-origin: left center;
-  pointer-events: none;
-} 

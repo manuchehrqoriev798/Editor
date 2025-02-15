@@ -353,7 +353,7 @@ const GraphVisualizer = ({ onBack }) => {
     <div className="graph-visualizer">
       <div className="graph-container">
         <div className="graph-controls">
-          <button className="back-btn" onClick={onBack}>
+          <button className="graph-back-btn" onClick={onBack}>
             Back to Home
           </button>
         </div>
@@ -417,7 +417,7 @@ const GraphVisualizer = ({ onBack }) => {
             {nodes.map((node) => (
               <div
                 key={node.id}
-                className="node-wrapper"
+                className="graph-node-wrapper"
                 style={{
                   left: `${node.position.x + NODE_RADIUS}px`,
                   top: `${node.position.y + NODE_RADIUS}px`
@@ -429,12 +429,12 @@ const GraphVisualizer = ({ onBack }) => {
                 }}
               >
                 <div
-                  className={`node ${
-                    newNodeId === node.id ? 'appear' : ''
+                  className={`graph-node ${
+                    newNodeId === node.id ? 'graph-appear' : ''
                   } ${
-                    deletingNodes.has(node.id) ? 'delete' : ''
+                    deletingNodes.has(node.id) ? 'graph-delete' : ''
                   } ${
-                    hoveredNode === node.id ? 'node-hovered' : ''
+                    hoveredNode === node.id ? 'graph-node-hovered' : ''
                   }`}
                   onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
                   style={{
@@ -447,13 +447,13 @@ const GraphVisualizer = ({ onBack }) => {
                     type="text"
                     value={node.label}
                     onChange={(e) => handleLabelChange(node.id, e.target.value)}
-                    className="node-input"
+                    className="graph-node-input"
                     onClick={(e) => e.stopPropagation()}
                     placeholder="?"
                   />
                   {hoveredNode === node.id && (
                     <button 
-                      className="delete-node-btn"
+                      className="graph-delete-node-btn"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDeleteNode(node.id);
@@ -465,7 +465,7 @@ const GraphVisualizer = ({ onBack }) => {
                 </div>
                 {hoveredNode === node.id && addButtonPosition && (
                   <button 
-                    className="add-node-btn"
+                    className="graph-add-node-btn"
                     style={{
                       left: `${addButtonPosition.x - node.position.x - NODE_RADIUS}px`,
                       top: `${addButtonPosition.y - node.position.y - NODE_RADIUS}px`,
@@ -482,10 +482,10 @@ const GraphVisualizer = ({ onBack }) => {
               </div>
             ))}
           </div>
-          <div className="zoom-controls">
-            <button className="zoom-btn" onClick={handleZoomIn} title="Zoom In">+</button>
-            <div className="zoom-level">{Math.round(scale * 100)}%</div>
-            <button className="zoom-btn" onClick={handleZoomOut} title="Zoom Out">−</button>
+          <div className="graph-zoom-controls">
+            <button className="graph-zoom-btn" onClick={handleZoomIn} title="Zoom In">+</button>
+            <div className="graph-zoom-level">{Math.round(scale * 100)}%</div>
+            <button className="graph-zoom-btn" onClick={handleZoomOut} title="Zoom Out">−</button>
           </div>
         </div>
       </div>
