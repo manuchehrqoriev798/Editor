@@ -6,7 +6,7 @@
   align-items: center;
 }
 
-.create-graph-btn {
+.graph-create-btn {
   padding: 10px 20px;
   font-size: 16px;
   cursor: pointer;
@@ -22,7 +22,7 @@
   position: relative;
 }
 
-.node-wrapper {
+.graph-node-wrapper {
   position: absolute;
   width: 100%;
   height: 100%;
@@ -35,7 +35,7 @@
   z-index: 3;
 }
 
-.add-node-btn {
+.graph-add-node-btn {
   width: 20px;
   height: 20px;
   background-color: #2196F3;
@@ -53,27 +53,27 @@
   transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
-.graph-add-node-btn.left {
+.graph-add-node-btn.graph-left {
   left: 0;
   top: 40px;
 }
 
-.graph-add-node-btn.right {
+.graph-add-node-btn.graph-right {
   left: 80px;
   top: 40px;
 }
 
-.graph-add-node-btn.top {
+.graph-add-node-btn.graph-top {
   left: 40px;
   top: 0;
 }
 
-.graph-add-node-btn.bottom {
+.graph-add-node-btn.graph-bottom {
   left: 40px;
   top: 80px;
 }
 
-.add-node-btn:hover {
+.graph-add-node-btn:hover {
   background-color: #1976D2;
   transform: scale(1.1);
 }
@@ -94,13 +94,6 @@
   width: 100%;
   height: 100%;
   transition: transform 0.05s linear;
-}
-
-.graph-node-wrapper {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  z-index: 2;
 }
 
 .graph-node {
@@ -130,7 +123,7 @@
   box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.3);
 }
 
-.connection-line {
+.graph-connection-line {
   position: absolute;
   height: 2px;
   background-color: transparent;
@@ -140,7 +133,7 @@
   transition: none;
 }
 
-.connection-line::before {
+.graph-connection-line::before {
   content: '';
   position: absolute;
   top: -1px;
@@ -151,7 +144,7 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.arrow-head {
+.graph-arrow-head {
   position: absolute;
   right: 0;
   top: 50%;
@@ -200,14 +193,14 @@
 }
 
 .graph-node.graph-appear {
-  animation: graphNodeAppearPulse 0.5s ease-out;
+  animation: graph-node-appear-pulse 0.5s ease-out;
 }
 
 .graph-node.graph-delete {
-  animation: graphNodeDelete 0.3s ease-out forwards;
+  animation: graph-node-delete 0.3s ease-out forwards;
 }
 
-@keyframes graphNodeAppearPulse {
+@keyframes graph-node-appear-pulse {
   0% {
     transform: scale(0);
     opacity: 0;
@@ -222,7 +215,7 @@
   }
 }
 
-@keyframes graphNodeDelete {
+@keyframes graph-node-delete {
   0% {
     transform: scale(1);
     opacity: 1;
@@ -234,15 +227,15 @@
 }
 
 /* Add animated flow effect */
-@keyframes flowAnimation {
+@keyframes graph-flow-animation {
   0% { background-position: 0% 50%; }
   100% { background-position: 100% 50%; }
 }
 
-.connection-line.animated::before {
+.graph-connection-line.graph-animated::before {
   background: linear-gradient(90deg, #4CAF50, #2196F3, #4CAF50);
   background-size: 200% 100%;
-  animation: flowAnimation 2s linear infinite;
+  animation: graph-flow-animation 2s linear infinite;
 }
 
 .graph-zoom-controls {

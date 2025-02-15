@@ -402,7 +402,7 @@ const GraphVisualizer = ({ onBack }) => {
               return (
                 <div
                   key={`connection-${index}`}
-                  className="connection-line"
+                  className="graph-connection-line"
                   style={{
                     left: `${lineProps.left}px`,
                     top: `${lineProps.top}px`,
@@ -410,7 +410,7 @@ const GraphVisualizer = ({ onBack }) => {
                     transform: lineProps.transform,
                   }}
                 >
-                  <div className="arrow-head" />
+                  <div className="graph-arrow-head" />
                 </div>
               );
             })}

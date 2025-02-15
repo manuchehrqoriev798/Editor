@@ -51,7 +51,7 @@
   z-index: -1;
 }
 
-.tree-node.root::before {
+.tree-node.tree-root::before {
   border-color: #e74c3c;
   background: linear-gradient(145deg, #fff5f5, #ffe5e5);
 }
@@ -69,7 +69,7 @@
   pointer-events: none;
 }
 
-.add-child-btn {
+.tree-add-child-btn {
   position: absolute;
   width: 24px;
   height: 24px;
@@ -86,17 +86,17 @@
   transition: all 0.2s ease;
 }
 
-.add-child-btn:hover {
+.tree-add-child-btn:hover {
   background-color: #219a52;
   transform: scale(1.1);
 }
 
-.add-child-btn.left {
+.tree-add-child-btn.tree-left {
   left: 0px;
   bottom: 15px;
 }
 
-.add-child-btn.right {
+.tree-add-child-btn.tree-right {
   right: 0px;
   bottom: 15px;
 }
@@ -134,7 +134,7 @@
   transform: scale(1.05);
 }
 
-.back-btn {
+.tree-back-btn {
   padding: 10px 20px;
   font-size: 16px;
   cursor: pointer;
@@ -152,7 +152,7 @@
   position: relative;
 }
 
-.node-input {
+.tree-node-input {
   width: 30px;
   height: 30px;
   border: none;
@@ -163,11 +163,11 @@
   padding: 0;
 }
 
-.node-input::placeholder {
+.tree-node-input::placeholder {
   color: #999;
 }
 
-.zoom-controls {
+.tree-zoom-controls {
   position: absolute;
   right: 20px;
   bottom: 60px;
@@ -181,7 +181,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.zoom-btn {
+.tree-zoom-btn {
   width: 32px;
   height: 32px;
   border: 1px solid #ddd;
@@ -196,7 +196,7 @@
   transition: all 0.2s ease;
 }
 
-.zoom-level {
+.tree-zoom-level {
   text-align: center;
   font-size: 12px;
   color: #666;

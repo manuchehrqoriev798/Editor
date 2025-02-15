@@ -91,92 +91,90 @@ const LinkedListVisualizer = ({ onBack }) => {
   };
 
   return (
-    <div className="linked-list-visualizer">
-      <div className="list-container">
-        <div className="list-controls">
-          <button className="back-btn" onClick={onBack}>
-            Back to Home
-          </button>
-        </div>
-        <div 
-          className="list-area" 
-          ref={listAreaRef}
-          onMouseDown={handleCanvasDragStart}
-          onMouseMove={handleCanvasDrag}
-          onMouseUp={handleCanvasDragEnd}
-          onMouseLeave={handleCanvasDragEnd}
-        >
-          <div className="list-content" style={{
-            transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
-            transformOrigin: '0 0'
-          }}>
-            <div className="nodes-container">
-              {nodes.map((node, index) => (
-                <div
-                  key={node.id}
-                  className="node-wrapper"
-                  onMouseEnter={() => setHoveredNode(node.id)}
-                  onMouseLeave={() => setHoveredNode(null)}
-                >
-                  <div className={`node ${
-                    newNodeId === node.id ? 'appear' : ''
-                  } ${
-                    deletingNodes.has(node.id) ? 'delete' : ''
-                  } ${
-                    hoveredNode === node.id ? 'node-hovered' : ''
-                  }`}>
-                    {hoveredNode === node.id && (
-                      <>
-                        <button 
-                          className="add-node-btn left"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAddNode(node.id, 'left');
-                          }}
-                        >
-                          +
-                        </button>
-                        <button 
-                          className="add-node-btn right"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAddNode(node.id, 'right');
-                          }}
-                        >
-                          +
-                        </button>
-                      </>
-                    )}
-                    <input
-                      type="text"
-                      value={node.label}
-                      onChange={(e) => handleLabelChange(node.id, e.target.value)}
-                      className="node-input"
-                      placeholder="?"
-                    />
-                    {hoveredNode === node.id && (
+    <div className="linked-list-container">
+      <div className="linked-list-controls">
+        <button className="linked-list-back-btn" onClick={onBack}>
+          Back to Home
+        </button>
+      </div>
+      <div 
+        className="linked-list-area" 
+        ref={listAreaRef}
+        onMouseDown={handleCanvasDragStart}
+        onMouseMove={handleCanvasDrag}
+        onMouseUp={handleCanvasDragEnd}
+        onMouseLeave={handleCanvasDragEnd}
+      >
+        <div className="linked-list-content" style={{
+          transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
+          transformOrigin: '0 0'
+        }}>
+          <div className="linked-list-nodes-container">
+            {nodes.map((node, index) => (
+              <div
+                key={node.id}
+                className="linked-list-node-wrapper"
+                onMouseEnter={() => setHoveredNode(node.id)}
+                onMouseLeave={() => setHoveredNode(null)}
+              >
+                <div className={`linked-list-node ${
+                  newNodeId === node.id ? 'appear' : ''
+                } ${
+                  deletingNodes.has(node.id) ? 'delete' : ''
+                } ${
+                  hoveredNode === node.id ? 'linked-list-node-hovered' : ''
+                }`}>
+                  {hoveredNode === node.id && (
+                    <>
                       <button 
-                        className="delete-node-btn"
-                        onClick={() => handleDeleteNode(node.id)}
+                        className="linked-list-add-node-btn left"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddNode(node.id, 'left');
+                        }}
                       >
-                        ×
+                        +
                       </button>
-                    )}
-                  </div>
-                  {index < nodes.length - 1 && (
-                    <div className="connection-line">
-                      <div className="arrow-head" />
-                    </div>
+                      <button 
+                        className="linked-list-add-node-btn right"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddNode(node.id, 'right');
+                        }}
+                      >
+                        +
+                      </button>
+                    </>
+                  )}
+                  <input
+                    type="text"
+                    value={node.label}
+                    onChange={(e) => handleLabelChange(node.id, e.target.value)}
+                    className="linked-list-node-input"
+                    placeholder="?"
+                  />
+                  {hoveredNode === node.id && (
+                    <button 
+                      className="linked-list-delete-node-btn"
+                      onClick={() => handleDeleteNode(node.id)}
+                    >
+                      ×
+                    </button>
                   )}
                 </div>
-              ))}
-            </div>
+                {index < nodes.length - 1 && (
+                  <div className="linked-list-connection-line">
+                    <div className="linked-list-arrow-head" />
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
-          <div className="zoom-controls">
-            <button className="zoom-btn" onClick={handleZoomIn}>+</button>
-            <div className="zoom-level">{Math.round(scale * 100)}%</div>
-            <button className="zoom-btn" onClick={handleZoomOut}>−</button>
-          </div>
+        </div>
+        <div className="linked-list-zoom-controls">
+          <button className="linked-list-zoom-btn" onClick={handleZoomIn}>+</button>
+          <div className="linked-list-zoom-level">{Math.round(scale * 100)}%</div>
+          <button className="linked-list-zoom-btn" onClick={handleZoomOut}>−</button>
         </div>
       </div>
     </div>

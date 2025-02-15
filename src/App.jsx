@@ -3,6 +3,8 @@ import { useState } from 'react'
 import GraphVisualizer from './components/GraphVisualizer'
 import TreeVisualizer from './components/TreeVisualizer'
 import LinkedListVisualizer from './components/LinkedListVisualizer'
+import StackVisualizer from './components/StackVisualizer'
+import QueueVisualizer from './components/QueueVisualizer'
 
 function App() {
   const [activeVisualizer, setActiveVisualizer] = useState(null);
@@ -20,6 +22,10 @@ function App() {
         return <TreeVisualizer onBack={() => setActiveVisualizer(null)} />;
       case 'linkedlist':
         return <LinkedListVisualizer onBack={() => setActiveVisualizer(null)} />;
+      case 'stack':
+        return <StackVisualizer onBack={() => setActiveVisualizer(null)} />;
+      case 'queue':
+        return <QueueVisualizer onBack={() => setActiveVisualizer(null)} />;
     }
   }
 
@@ -44,6 +50,18 @@ function App() {
           onClick={() => handleActivate('linkedlist')}
         >
           Linked List Visualizer
+        </button>
+        <button 
+          className="visualizer-btn"
+          onClick={() => handleActivate('stack')}
+        >
+          Stack Visualizer
+        </button>
+        <button 
+          className="visualizer-btn"
+          onClick={() => handleActivate('queue')}
+        >
+          Queue Visualizer
         </button>
       </div>
     </div>

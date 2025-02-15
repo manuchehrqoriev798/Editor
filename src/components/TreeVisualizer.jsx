@@ -225,7 +225,7 @@ const TreeVisualizer = ({ onActivate, onBack }) => {
     <div className="tree-visualizer">
       <div className="tree-container">
         <div className="tree-controls">
-          <button className="back-btn" onClick={onBack}>
+          <button className="tree-back-btn" onClick={onBack}>
             Back to Home
           </button>
         </div>
@@ -256,7 +256,7 @@ const TreeVisualizer = ({ onActivate, onBack }) => {
             {nodes.map(node => (
               <div
                 key={node.id}
-                className={`tree-node ${node.isRoot ? 'root' : ''}`}
+                className={`tree-node ${node.isRoot ? 'tree-root' : ''}`}
                 style={{
                   left: node.position.x,
                   top: node.position.y
@@ -273,7 +273,7 @@ const TreeVisualizer = ({ onActivate, onBack }) => {
                     );
                     setNodes(newNodes);
                   }}
-                  className="node-input"
+                  className="tree-node-input"
                   onClick={(e) => e.stopPropagation()}
                   placeholder="?"
                 />
@@ -281,7 +281,7 @@ const TreeVisualizer = ({ onActivate, onBack }) => {
                   <>
                     {!node.leftChildId && (
                       <button
-                        className="add-child-btn left"
+                        className="tree-add-child-btn tree-left"
                         onClick={() => addChild(node.id, true)}
                       >
                         +
@@ -289,7 +289,7 @@ const TreeVisualizer = ({ onActivate, onBack }) => {
                     )}
                     {!node.rightChildId && (
                       <button
-                        className="add-child-btn right"
+                        className="tree-add-child-btn tree-right"
                         onClick={() => addChild(node.id, false)}
                       >
                         +
@@ -300,17 +300,17 @@ const TreeVisualizer = ({ onActivate, onBack }) => {
               </div>
             ))}
           </div>
-          <div className="zoom-controls">
+          <div className="tree-zoom-controls">
             <button 
-              className="zoom-btn" 
+              className="tree-zoom-btn" 
               onClick={() => setScale(prev => Math.min(4, prev + 0.1))}
               title="Zoom In"
             >
               +
             </button>
-            <div className="zoom-level">{Math.round(scale * 100)}%</div>
+            <div className="tree-zoom-level">{Math.round(scale * 100)}%</div>
             <button 
-              className="zoom-btn" 
+              className="tree-zoom-btn" 
               onClick={() => setScale(prev => Math.max(0.1, prev - 0.1))}
               title="Zoom Out"
             >
