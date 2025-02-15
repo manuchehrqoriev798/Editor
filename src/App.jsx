@@ -3,6 +3,8 @@ import { useState } from 'react'
 import GraphVisualizer from './components/GraphVisualizer'
 import DirectedGraphVisualizer from './components/DirectedGraphVisualizer'
 import TreeVisualizer from './components/TreeVisualizer'
+import LinkedListVisualizer from './components/LinkedListVisualizer'
+import DoubleLinkedListVisualizer from './components/DoubleLinkedListVisualizer'
 
 function App() {
   const [activeVisualizer, setActiveVisualizer] = useState(null);
@@ -20,6 +22,10 @@ function App() {
         return <DirectedGraphVisualizer onBack={() => setActiveVisualizer(null)} />;
       case 'tree':
         return <TreeVisualizer onBack={() => setActiveVisualizer(null)} />;
+      case 'linkedlist':
+        return <LinkedListVisualizer onBack={() => setActiveVisualizer(null)} />;
+      case 'doublelinkedlist':
+        return <DoubleLinkedListVisualizer onBack={() => setActiveVisualizer(null)} />;
     }
   }
 
@@ -44,6 +50,18 @@ function App() {
           onClick={() => handleActivate('tree')}
         >
           Tree Visualizer
+        </button>
+        <button 
+          className="visualizer-btn"
+          onClick={() => handleActivate('linkedlist')}
+        >
+          Linked List Visualizer
+        </button>
+        <button 
+          className="visualizer-btn"
+          onClick={() => handleActivate('doublelinkedlist')}
+        >
+          Double Linked List Visualizer
         </button>
       </div>
     </div>

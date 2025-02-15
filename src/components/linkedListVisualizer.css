@@ -1,0 +1,200 @@
+.linked-list-visualizer {
+  width: 100vw;
+  height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.list-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.list-controls {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+  display: flex;
+  gap: 10px;
+}
+
+.list-area {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  cursor: default !important;
+}
+
+.list-area:active {
+  cursor: grabbing;
+}
+
+/* When actively dragging the canvas */
+.list-area.dragging {
+  cursor: grabbing !important;
+}
+
+.list-content {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.list-node-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  padding: 50px;
+  margin: -50px;
+}
+
+.list-node {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default !important;
+  transition: all 0.3s ease;
+  padding: 30px;
+  margin: -30px;
+}
+
+.list-node::before {
+  content: '';
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(145deg, #ffffff, #e6e6e6);
+  border: 2px solid #2c3e50;
+  border-radius: 50%;
+  z-index: -1;
+}
+
+.list-node:hover::before {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+
+.list-arrow {
+  position: absolute;
+  font-size: 24px;
+  color: #333;
+  pointer-events: none;
+}
+
+.node-input {
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-size: 14px;
+  outline: none;
+  padding: 0;
+}
+
+.node-input::placeholder {
+  color: #999;
+}
+
+.insert-node-btn {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  z-index: 2;
+}
+
+.insert-node-btn:hover {
+  background-color: #219a52;
+  transform: scale(1.1);
+}
+
+.insert-node-btn.left {
+  left: -40px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.insert-node-btn.right {
+  right: -40px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.delete-node-btn {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #ff4444;
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  z-index: 2;
+}
+
+.delete-node-btn:hover {
+  background-color: #cc0000;
+  transform: translateX(-50%) scale(1.1);
+}
+
+.back-btn {
+  padding: 8px 16px;
+  background-color: #333;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.back-btn:hover {
+  background-color: #555;
+}
+
+/* Add animation for node insertion */
+@keyframes nodeInsert {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.list-node {
+  animation: nodeInsert 0.3s ease-out;
+}
+
+/* Connection line between nodes */
+.list-connection {
+  position: absolute;
+  height: 2px;
+  background-color: #2c3e50;
+  transform-origin: left center;
+  pointer-events: none;
+} 
