@@ -5,6 +5,7 @@ import TreeVisualizer from './components/TreeVisualizer'
 import LinkedListVisualizer from './components/LinkedListVisualizer'
 import StackVisualizer from './components/StackVisualizer'
 import QueueVisualizer from './components/QueueVisualizer'
+import HeapVisualizer from './components/HeapVisualizer'
 
 function App() {
   const [activeVisualizer, setActiveVisualizer] = useState(null);
@@ -26,6 +27,8 @@ function App() {
         return <StackVisualizer onBack={() => setActiveVisualizer(null)} />;
       case 'queue':
         return <QueueVisualizer onBack={() => setActiveVisualizer(null)} />;
+      case 'heap':
+        return <HeapVisualizer onBack={() => setActiveVisualizer(null)} />;
     }
   }
 
@@ -62,6 +65,12 @@ function App() {
           onClick={() => handleActivate('queue')}
         >
           Queue Visualizer
+        </button>
+        <button 
+          className="visualizer-btn"
+          onClick={() => handleActivate('heap')}
+        >
+          Heap Visualizer
         </button>
       </div>
     </div>

@@ -19,6 +19,7 @@ const GraphVisualizer = ({ onBack }) => {
   const INTERACTION_RADIUS = 40; // Distance from node edge where interaction is allowed
   const [deletingNodes, setDeletingNodes] = useState(new Set());
   const [newNodeId, setNewNodeId] = useState(null);
+  const [rightClickMenu, setRightClickMenu] = useState({ nodeId: null, position: { x: 0, y: 0 } });
 
   // Automatically create initial node when component mounts
   useEffect(() => {
@@ -349,9 +350,35 @@ const GraphVisualizer = ({ onBack }) => {
     });
   };
 
+  const handleContextMenu = (e, nodeId) => {
+    e.preventDefault();
+    setRightClickMenu({
+      nodeId,
+      position: { x: e.clientX, y: e.clientY }
+    });
+  };
+
+  const handleClickOutside = () => {
+    setRightClickMenu({ nodeId: null, position: { x: 0, y: 0 } });
+  };
+
+  const handleSwitchNodes = (sourceId, targetId) => {
+    const newNodes = [...nodes];
+    const sourceNode = newNodes.find(n => n.id === sourceId);
+    const targetNode = newNodes.find(n => n.id === targetId);
+    
+    // Switch labels
+    const tempLabel = sourceNode.label;
+    sourceNode.label = targetNode.label;
+    targetNode.label = tempLabel;
+    
+    setNodes(newNodes);
+    setRightClickMenu({ nodeId: null, position: { x: 0, y: 0 } });
+  };
+
   return (
     <div className="graph-visualizer">
-      <div className="graph-container">
+      <div className="graph-container" onClick={handleClickOutside}>
         <div className="graph-controls">
           <button className="graph-back-btn" onClick={onBack}>
             Back to Home
@@ -427,6 +454,7 @@ const GraphVisualizer = ({ onBack }) => {
                   setAddButtonPosition(null);
                   setHoveredNode(null);
                 }}
+                onContextMenu={(e) => handleContextMenu(e, node.id)}
               >
                 <div
                   className={`graph-node ${
@@ -481,6 +509,38 @@ const GraphVisualizer = ({ onBack }) => {
                 )}
               </div>
             ))}
+            {rightClickMenu.nodeId && (
+              <div 
+                className="node-context-menu"
+                style={{
+                  left: rightClickMenu.position.x,
+                  top: rightClickMenu.position.y
+                }}
+              >
+                {connections
+                  .filter(conn => conn.from === rightClickMenu.nodeId)
+                  .map(conn => (
+                    <button
+                      key={conn.to}
+                      onClick={() => handleSwitchNodes(rightClickMenu.nodeId, conn.to)}
+                    >
+                      Switch ({nodes.find(n => n.id === rightClickMenu.nodeId)?.label || '?'}) with connected node ({nodes.find(n => n.id === conn.to)?.label || '?'})
+                    </button>
+                  ))
+                }
+                {connections
+                  .filter(conn => conn.to === rightClickMenu.nodeId)
+                  .map(conn => (
+                    <button
+                      key={conn.from}
+                      onClick={() => handleSwitchNodes(rightClickMenu.nodeId, conn.from)}
+                    >
+                      Switch ({nodes.find(n => n.id === rightClickMenu.nodeId)?.label || '?'}) with connected node ({nodes.find(n => n.id === conn.from)?.label || '?'})
+                    </button>
+                  ))
+                }
+              </div>
+            )}
           </div>
           <div className="graph-zoom-controls">
             <button className="graph-zoom-btn" onClick={handleZoomIn} title="Zoom In">+</button>

@@ -11,6 +11,7 @@ const LinkedListVisualizer = ({ onBack }) => {
   const listAreaRef = useRef(null);
   const [deletingNodes, setDeletingNodes] = useState(new Set());
   const [newNodeId, setNewNodeId] = useState(null);
+  const [rightClickMenu, setRightClickMenu] = useState({ nodeId: null, position: { x: 0, y: 0 } });
 
   // Initialize with first node
   useEffect(() => {
@@ -90,8 +91,27 @@ const LinkedListVisualizer = ({ onBack }) => {
     setIsDraggingCanvas(false);
   };
 
+  const handleContextMenu = (e, nodeId) => {
+    e.preventDefault();
+    setRightClickMenu({
+      nodeId,
+      position: { x: e.clientX, y: e.clientY }
+    });
+  };
+
+  const handleClickOutside = () => {
+    setRightClickMenu({ nodeId: null, position: { x: 0, y: 0 } });
+  };
+
+  const handleSwitchNodes = (sourceIndex, targetIndex) => {
+    const newNodes = [...nodes];
+    [newNodes[sourceIndex], newNodes[targetIndex]] = [newNodes[targetIndex], newNodes[sourceIndex]];
+    setNodes(newNodes);
+    setRightClickMenu({ nodeId: null, position: { x: 0, y: 0 } });
+  };
+
   return (
-    <div className="linked-list-container">
+    <div className="linked-list-container" onClick={handleClickOutside}>
       <div className="linked-list-controls">
         <button className="linked-list-back-btn" onClick={onBack}>
           Back to Home
@@ -116,6 +136,7 @@ const LinkedListVisualizer = ({ onBack }) => {
                 className="linked-list-node-wrapper"
                 onMouseEnter={() => setHoveredNode(node.id)}
                 onMouseLeave={() => setHoveredNode(null)}
+                onContextMenu={(e) => handleContextMenu(e, node.id)}
               >
                 <div className={`linked-list-node ${
                   newNodeId === node.id ? 'appear' : ''
@@ -171,6 +192,36 @@ const LinkedListVisualizer = ({ onBack }) => {
             ))}
           </div>
         </div>
+        {rightClickMenu.nodeId && (
+          <div 
+            className="node-context-menu"
+            style={{
+              left: rightClickMenu.position.x,
+              top: rightClickMenu.position.y
+            }}
+          >
+            {nodes.findIndex(n => n.id === rightClickMenu.nodeId) > 0 && (
+              <button
+                onClick={() => {
+                  const currentIndex = nodes.findIndex(n => n.id === rightClickMenu.nodeId);
+                  handleSwitchNodes(currentIndex, currentIndex - 1);
+                }}
+              >
+                Switch ({nodes[nodes.findIndex(n => n.id === rightClickMenu.nodeId)].label || '?'}) with left node ({nodes[nodes.findIndex(n => n.id === rightClickMenu.nodeId) - 1].label || '?'})
+              </button>
+            )}
+            {nodes.findIndex(n => n.id === rightClickMenu.nodeId) < nodes.length - 1 && (
+              <button
+                onClick={() => {
+                  const currentIndex = nodes.findIndex(n => n.id === rightClickMenu.nodeId);
+                  handleSwitchNodes(currentIndex, currentIndex + 1);
+                }}
+              >
+                Switch ({nodes[nodes.findIndex(n => n.id === rightClickMenu.nodeId)].label || '?'}) with right node ({nodes[nodes.findIndex(n => n.id === rightClickMenu.nodeId) + 1].label || '?'})
+              </button>
+            )}
+          </div>
+        )}
         <div className="linked-list-zoom-controls">
           <button className="linked-list-zoom-btn" onClick={handleZoomIn}>+</button>
           <div className="linked-list-zoom-level">{Math.round(scale * 100)}%</div>

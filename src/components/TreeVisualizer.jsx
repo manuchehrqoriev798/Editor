@@ -12,6 +12,7 @@ const TreeVisualizer = ({ onActivate, onBack }) => {
   const [hoveredNode, setHoveredNode] = useState(null);
   const LEVEL_HEIGHT = 120;
   const NODE_WIDTH = 50;
+  const [rightClickMenu, setRightClickMenu] = useState({ nodeId: null, position: { x: 0, y: 0 } });
 
   const getSubtreeWidth = (nodeId, level) => {
     const node = nodes.find(n => n.id === nodeId);
@@ -221,9 +222,35 @@ const TreeVisualizer = ({ onActivate, onBack }) => {
     }, 0);
   }, []);
 
+  const handleContextMenu = (e, nodeId) => {
+    e.preventDefault();
+    setRightClickMenu({
+      nodeId,
+      position: { x: e.clientX, y: e.clientY }
+    });
+  };
+
+  const handleClickOutside = () => {
+    setRightClickMenu({ nodeId: null, position: { x: 0, y: 0 } });
+  };
+
+  const handleSwitchNodes = (sourceId, targetId) => {
+    const newNodes = [...nodes];
+    const sourceNode = newNodes.find(n => n.id === sourceId);
+    const targetNode = newNodes.find(n => n.id === targetId);
+    
+    // Switch labels
+    const tempLabel = sourceNode.label;
+    sourceNode.label = targetNode.label;
+    targetNode.label = tempLabel;
+    
+    setNodes(newNodes);
+    setRightClickMenu({ nodeId: null, position: { x: 0, y: 0 } });
+  };
+
   return (
     <div className="tree-visualizer">
-      <div className="tree-container">
+      <div className="tree-container" onClick={handleClickOutside}>
         <div className="tree-controls">
           <button className="tree-back-btn" onClick={onBack}>
             Back to Home
@@ -263,6 +290,7 @@ const TreeVisualizer = ({ onActivate, onBack }) => {
                 }}
                 onMouseEnter={() => setHoveredNode(node.id)}
                 onMouseLeave={() => setHoveredNode(null)}
+                onContextMenu={(e) => handleContextMenu(e, node.id)}
               >
                 <input
                   type="text"
@@ -299,6 +327,46 @@ const TreeVisualizer = ({ onActivate, onBack }) => {
                 )}
               </div>
             ))}
+            {rightClickMenu.nodeId && (
+              <div 
+                className="node-context-menu"
+                style={{
+                  left: rightClickMenu.position.x,
+                  top: rightClickMenu.position.y
+                }}
+              >
+                {nodes.find(n => n.id === rightClickMenu.nodeId)?.leftChildId && (
+                  <button
+                    onClick={() => {
+                      const node = nodes.find(n => n.id === rightClickMenu.nodeId);
+                      handleSwitchNodes(rightClickMenu.nodeId, node.leftChildId);
+                    }}
+                  >
+                    Switch ({nodes.find(n => n.id === rightClickMenu.nodeId)?.label || '?'}) with left child ({nodes.find(n => n.id === nodes.find(n => n.id === rightClickMenu.nodeId)?.leftChildId)?.label || '?'})
+                  </button>
+                )}
+                {nodes.find(n => n.id === rightClickMenu.nodeId)?.rightChildId && (
+                  <button
+                    onClick={() => {
+                      const node = nodes.find(n => n.id === rightClickMenu.nodeId);
+                      handleSwitchNodes(rightClickMenu.nodeId, node.rightChildId);
+                    }}
+                  >
+                    Switch ({nodes.find(n => n.id === rightClickMenu.nodeId)?.label || '?'}) with right child ({nodes.find(n => n.id === nodes.find(n => n.id === rightClickMenu.nodeId)?.rightChildId)?.label || '?'})
+                  </button>
+                )}
+                {nodes.find(n => n.id === rightClickMenu.nodeId)?.parentId && (
+                  <button
+                    onClick={() => {
+                      const node = nodes.find(n => n.id === rightClickMenu.nodeId);
+                      handleSwitchNodes(rightClickMenu.nodeId, node.parentId);
+                    }}
+                  >
+                    Switch ({nodes.find(n => n.id === rightClickMenu.nodeId)?.label || '?'}) with parent ({nodes.find(n => n.id === nodes.find(n => n.id === rightClickMenu.nodeId)?.parentId)?.label || '?'})
+                  </button>
+                )}
+              </div>
+            )}
           </div>
           <div className="tree-zoom-controls">
             <button 
