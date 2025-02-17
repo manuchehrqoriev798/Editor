@@ -11,6 +11,8 @@ const HeapVisualizer = ({ onBack }) => {
   const [isDraggingCanvas, setIsDraggingCanvas] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const LEVEL_HEIGHT = 120;
+  const [animatingNodes, setAnimatingNodes] = useState(new Set());
+  const [isAnimating, setIsAnimating] = useState(false);
 
   const heapify = (array, i, heapSize) => {
     const left = 2 * i + 1;
@@ -55,43 +57,75 @@ const HeapVisualizer = ({ onBack }) => {
     };
   };
 
-  const insertNode = (value) => {
+  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  const insertNode = async (value) => {
+    if (isAnimating) return;
+    setIsAnimating(true);
+
     const newNodeIndex = nodes.length;
     const position = calculateNodePosition(newNodeIndex);
 
     const newNode = {
       id: `node-${newNodeIndex + 1}`,
       label: value.toString(),
-      position: position
+      position: position,
+      state: 'inserting'
     };
 
     const newNodes = [...nodes, newNode];
+    setNodes(newNodes);
+    
+    // Wait for insertion animation
+    await sleep(500);
 
-    // Heapify up
+    // Heapify up with animation
     let current = newNodeIndex;
     while (current > 0) {
       const parentIndex = Math.floor((current - 1) / 2);
+      
+      // Highlight nodes being compared
+      setAnimatingNodes(new Set([current, parentIndex]));
+      await sleep(1000);
+
       const shouldSwap = heapType === 'max' 
         ? parseInt(newNodes[current].label) > parseInt(newNodes[parentIndex].label)
         : parseInt(newNodes[current].label) < parseInt(newNodes[parentIndex].label);
 
       if (shouldSwap) {
-        // Swap labels only
+        // Update nodes state to show swapping animation
+        newNodes[current].state = 'swapping';
+        newNodes[parentIndex].state = 'swapping';
+        setNodes([...newNodes]);
+        await sleep(500);
+
+        // Swap labels
         const temp = newNodes[current].label;
         newNodes[current].label = newNodes[parentIndex].label;
         newNodes[parentIndex].label = temp;
+        
+        // Reset state
+        newNodes[current].state = '';
+        newNodes[parentIndex].state = '';
+        setNodes([...newNodes]);
+        
         current = parentIndex;
       } else {
         break;
       }
     }
 
-    // Recalculate all node positions to ensure proper layout
+    // Clear animations
+    setAnimatingNodes(new Set());
+    setIsAnimating(false);
+
+    // Recalculate all node positions
     newNodes.forEach((node, index) => {
       node.position = calculateNodePosition(index);
+      node.state = '';
     });
 
-    setNodes(newNodes);
+    setNodes([...newNodes]);
   };
 
   const deleteRoot = () => {
@@ -103,6 +137,221 @@ const HeapVisualizer = ({ onBack }) => {
     
     heapify(newNodes, 0, newNodes.length);
     setNodes(newNodes);
+  };
+
+  const rebuildHeap = async () => {
+    if (nodes.length <= 1) return;
+    
+    const newNodes = [...nodes];
+    // Start from the last non-leaf node
+    for (let i = Math.floor(nodes.length / 2) - 1; i >= 0; i--) {
+      // Highlight current node being processed
+      setAnimatingNodes(new Set([i]));
+      await sleep(500);
+
+      let largest = i;
+      const left = 2 * i + 1;
+      const right = 2 * i + 2;
+
+      // Compare with children
+      if (left < nodes.length) {
+        setAnimatingNodes(new Set([i, left]));
+        await sleep(500);
+        
+        if (heapType === 'max') {
+          if (parseInt(newNodes[left].label) > parseInt(newNodes[largest].label)) {
+            largest = left;
+          }
+        } else {
+          if (parseInt(newNodes[left].label) < parseInt(newNodes[largest].label)) {
+            largest = left;
+          }
+        }
+      }
+
+      if (right < nodes.length) {
+        setAnimatingNodes(new Set([largest, right]));
+        await sleep(500);
+        
+        if (heapType === 'max') {
+          if (parseInt(newNodes[right].label) > parseInt(newNodes[largest].label)) {
+            largest = right;
+          }
+        } else {
+          if (parseInt(newNodes[right].label) < parseInt(newNodes[largest].label)) {
+            largest = right;
+          }
+        }
+      }
+
+      if (largest !== i) {
+        // Show swapping animation
+        newNodes[i].state = 'swapping';
+        newNodes[largest].state = 'swapping';
+        setNodes([...newNodes]);
+        await sleep(500);
+
+        // Swap values
+        const temp = newNodes[i].label;
+        newNodes[i].label = newNodes[largest].label;
+        newNodes[largest].label = temp;
+
+        // Reset state
+        newNodes[i].state = '';
+        newNodes[largest].state = '';
+        setNodes([...newNodes]);
+        
+        // Recursively heapify the affected subtree
+        await heapifyWithAnimation(newNodes, largest, heapType);
+      }
+    }
+
+    // Clear animations
+    setAnimatingNodes(new Set());
+    
+    // Recalculate positions
+    newNodes.forEach((node, index) => {
+      node.position = calculateNodePosition(index);
+      node.state = '';
+    });
+    
+    setNodes([...newNodes]);
+  };
+
+  const heapifyWithAnimation = async (array, i, currentHeapType) => {
+    const heapSize = array.length;
+    const left = 2 * i + 1;
+    const right = 2 * i + 2;
+    let largest = i;
+
+    if (left < heapSize) {
+      setAnimatingNodes(new Set([i, left]));
+      await sleep(500);
+      
+      if (currentHeapType === 'max') {
+        if (parseInt(array[left].label) > parseInt(array[largest].label)) {
+          largest = left;
+        }
+      } else {
+        if (parseInt(array[left].label) < parseInt(array[largest].label)) {
+          largest = left;
+        }
+      }
+    }
+
+    if (right < heapSize) {
+      setAnimatingNodes(new Set([largest, right]));
+      await sleep(500);
+      
+      if (currentHeapType === 'max') {
+        if (parseInt(array[right].label) > parseInt(array[largest].label)) {
+          largest = right;
+        }
+      } else {
+        if (parseInt(array[right].label) < parseInt(array[largest].label)) {
+          largest = right;
+        }
+      }
+    }
+
+    if (largest !== i) {
+      array[i].state = 'swapping';
+      array[largest].state = 'swapping';
+      setNodes([...array]);
+      await sleep(500);
+
+      const temp = array[i].label;
+      array[i].label = array[largest].label;
+      array[largest].label = temp;
+
+      array[i].state = '';
+      array[largest].state = '';
+      setNodes([...array]);
+
+      await heapifyWithAnimation(array, largest, currentHeapType);
+    }
+  };
+
+  const handleHeapTypeSwitch = async () => {
+    if (isAnimating) return;
+    setIsAnimating(true);
+    
+    // Store the new heap type
+    const newHeapType = heapType === 'max' ? 'min' : 'max';
+    
+    // Create a copy of nodes
+    const newNodes = [...nodes];
+    
+    // Update heap type
+    setHeapType(newHeapType);
+    
+    // Start from the last non-leaf node
+    for (let i = Math.floor(newNodes.length / 2) - 1; i >= 0; i--) {
+      setAnimatingNodes(new Set([i]));
+      await sleep(500);
+
+      let largest = i;
+      const left = 2 * i + 1;
+      const right = 2 * i + 2;
+
+      if (left < newNodes.length) {
+        setAnimatingNodes(new Set([i, left]));
+        await sleep(500);
+        
+        if (newHeapType === 'max') {
+          if (parseInt(newNodes[left].label) > parseInt(newNodes[largest].label)) {
+            largest = left;
+          }
+        } else {
+          if (parseInt(newNodes[left].label) < parseInt(newNodes[largest].label)) {
+            largest = left;
+          }
+        }
+      }
+
+      if (right < newNodes.length) {
+        setAnimatingNodes(new Set([largest, right]));
+        await sleep(500);
+        
+        if (newHeapType === 'max') {
+          if (parseInt(newNodes[right].label) > parseInt(newNodes[largest].label)) {
+            largest = right;
+          }
+        } else {
+          if (parseInt(newNodes[right].label) < parseInt(newNodes[largest].label)) {
+            largest = right;
+          }
+        }
+      }
+
+      if (largest !== i) {
+        newNodes[i].state = 'swapping';
+        newNodes[largest].state = 'swapping';
+        setNodes([...newNodes]);
+        await sleep(500);
+
+        const temp = newNodes[i].label;
+        newNodes[i].label = newNodes[largest].label;
+        newNodes[largest].label = temp;
+
+        newNodes[i].state = '';
+        newNodes[largest].state = '';
+        setNodes([...newNodes]);
+        
+        // Use the new heap type here
+        await heapifyWithAnimation(newNodes, largest, newHeapType);
+      }
+    }
+
+    setAnimatingNodes(new Set());
+    
+    newNodes.forEach((node, index) => {
+      node.position = calculateNodePosition(index);
+      node.state = '';
+    });
+    
+    setNodes([...newNodes]);
+    setIsAnimating(false);
   };
 
   // Canvas drag handlers
@@ -138,6 +387,46 @@ const HeapVisualizer = ({ onBack }) => {
     setInputValue(''); // Clear input after insertion
   };
 
+  const deleteNode = async (nodeIndex) => {
+    if (isAnimating) return;
+    setIsAnimating(true);
+
+    const newNodes = [...nodes];
+    
+    // Highlight the node being deleted
+    setAnimatingNodes(new Set([nodeIndex]));
+    newNodes[nodeIndex].state = 'deleting';
+    setNodes([...newNodes]);
+    await sleep(500);
+
+    // If it's a leaf node, simply remove it
+    if (nodeIndex === newNodes.length - 1) {
+      newNodes.pop();
+    } else {
+      // Replace with the last node
+      newNodes[nodeIndex].label = newNodes[newNodes.length - 1].label;
+      newNodes[nodeIndex].state = 'inserting';
+      setNodes([...newNodes]);
+      await sleep(500);
+      
+      // Remove the last node
+      newNodes.pop();
+      
+      // Heapify down from the replaced node
+      await heapifyWithAnimation(newNodes, nodeIndex, heapType);
+    }
+
+    // Recalculate positions
+    newNodes.forEach((node, index) => {
+      node.position = calculateNodePosition(index);
+      node.state = '';
+    });
+
+    setNodes([...newNodes]);
+    setAnimatingNodes(new Set());
+    setIsAnimating(false);
+  };
+
   // Initialize heap with root node
   useEffect(() => {
     const rootNode = {
@@ -156,9 +445,9 @@ const HeapVisualizer = ({ onBack }) => {
         </button>
         <button 
           className="heap-type-btn"
-          onClick={() => setHeapType(prev => prev === 'max' ? 'min' : 'max')}
+          onClick={handleHeapTypeSwitch}
         >
-          Switch to {heapType === 'max' ? 'Min' : 'Max'} Heap
+          Current: {heapType === 'max' ? 'Max' : 'Min'} Heap (Click to switch to {heapType === 'max' ? 'Min' : 'Max'} Heap)
         </button>
         <form onSubmit={handleInsert} className="heap-insert-form">
           <input
@@ -212,16 +501,28 @@ const HeapVisualizer = ({ onBack }) => {
             }
             return null;
           })}
-          {nodes.map(node => (
+          {nodes.map((node, index) => (
             <div
               key={node.id}
-              className="heap-node"
+              className={`heap-node ${node.state} ${
+                animatingNodes.has(nodes.indexOf(node)) ? 'comparing' : ''
+              }`}
               style={{
                 left: node.position.x,
                 top: node.position.y
               }}
             >
               {node.label}
+              <button
+                className="delete-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteNode(index);
+                }}
+                title="Delete node"
+              >
+                ×
+              </button>
             </div>
           ))}
         </div>
