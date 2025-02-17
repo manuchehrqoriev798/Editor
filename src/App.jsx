@@ -6,6 +6,7 @@ import LinkedListVisualizer from './components/LinkedListVisualizer'
 import StackVisualizer from './components/StackVisualizer'
 import QueueVisualizer from './components/QueueVisualizer'
 import HeapVisualizer from './components/HeapVisualizer'
+import HashTableVisualizer from './components/HashTableVisualizer'
 
 function App() {
   const [activeVisualizer, setActiveVisualizer] = useState(null);
@@ -29,6 +30,8 @@ function App() {
         return <QueueVisualizer onBack={() => setActiveVisualizer(null)} />;
       case 'heap':
         return <HeapVisualizer onBack={() => setActiveVisualizer(null)} />;
+      case 'hashtable':
+        return <HashTableVisualizer onBack={() => setActiveVisualizer(null)} />;
     }
   }
 
@@ -71,6 +74,12 @@ function App() {
           onClick={() => handleActivate('heap')}
         >
           Heap Visualizer
+        </button>
+        <button 
+          className="visualizer-btn"
+          onClick={() => handleActivate('hashtable')}
+        >
+          Hash Table Visualizer
         </button>
       </div>
     </div>
