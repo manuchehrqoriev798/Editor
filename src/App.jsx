@@ -73,7 +73,7 @@ function App() {
           className="visualizer-btn"
           onClick={() => handleActivate('heap')}
         >
-          Binary Heap Visualizer
+          Heap Visualizer
         </button>
         <button 
           className="visualizer-btn"
