@@ -14,6 +14,12 @@ const HeapVisualizer = ({ onBack }) => {
   const [animatingNodes, setAnimatingNodes] = useState(new Set());
   const [isAnimating, setIsAnimating] = useState(false);
 
+  // Add new state variables for array visualization
+  const [arrayInputValue, setArrayInputValue] = useState('');
+  const [activeIndex, setActiveIndex] = useState(null);
+  const [comparingIndices, setComparingIndices] = useState([]);
+  const [swappingIndices, setSwappingIndices] = useState([]);
+
   const heapify = (array, i, heapSize) => {
     const left = 2 * i + 1;
     const right = 2 * i + 2;
@@ -427,14 +433,17 @@ const HeapVisualizer = ({ onBack }) => {
     setIsAnimating(false);
   };
 
-  // Initialize heap with root node
+  // Add array input handler
+  const handleArrayInputChange = (e) => {
+    // Allow only numbers and commas
+    const value = e.target.value.replace(/[^0-9,]/g, '');
+    setArrayInputValue(value);
+  };
+
+  // Remove or modify the useEffect that initializes the root node
   useEffect(() => {
-    const rootNode = {
-      id: 'node-1',
-      label: '50',
-      position: { x: window.innerWidth / 2, y: 100 }
-    };
-    setNodes([rootNode]);
+    // Initialize with empty nodes array instead of default root node
+    setNodes([]);
   }, []);
 
   return (
@@ -447,7 +456,7 @@ const HeapVisualizer = ({ onBack }) => {
           className="heap-type-btn"
           onClick={handleHeapTypeSwitch}
         >
-          Current: {heapType === 'max' ? 'Max' : 'Min'} Heap (Click to switch to {heapType === 'max' ? 'Min' : 'Max'} Heap)
+          Current: {heapType === 'max' ? 'Max' : 'Min'} Heap
         </button>
         <form onSubmit={handleInsert} className="heap-insert-form">
           <input
@@ -457,14 +466,39 @@ const HeapVisualizer = ({ onBack }) => {
             placeholder="Enter value"
             className="heap-input"
           />
-          <button 
-            type="submit"
-            className="heap-action-btn"
-          >
+          <button type="submit" className="heap-action-btn">
             Insert
           </button>
         </form>
       </div>
+
+      {/* Array visualization section */}
+      <div className="heap-array-visualization">
+        <div className="heap-array-container">
+          {nodes.map((node, index) => (
+            <div
+              key={`array-${index}`}
+              className={`heap-array-node ${
+                animatingNodes.has(index) ? 'comparing' : ''
+              } ${node.state}`}
+            >
+              <span className="heap-array-value">{node.label}</span>
+              <span className="heap-array-index">{index}</span>
+              <button
+                className="delete-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteNode(index);
+                }}
+                title="Delete node"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="heap-area"
         ref={treeAreaRef}
         onMouseDown={handleCanvasDragStart}
